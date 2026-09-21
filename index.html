@@ -477,6 +477,185 @@
             .marquee-strip { font-size: 11px; }
         }
 
+        /* Video section */
+        .video-section {
+            padding: 90px 24px;
+            position: relative;
+        }
+
+        .mkr-video-frame {
+            position: relative;
+            border-radius: 16px;
+            padding: 8px;
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--surface-card);
+            border: 1px solid var(--border-glow);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.85), 0 0 40px rgba(16, 185, 129, 0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        .mkr-video-inner {
+            border-radius: 10px;
+            overflow: hidden;
+            background: #000;
+            aspect-ratio: 16/9;
+            position: relative;
+        }
+
+        .mkr-video-inner iframe,
+        .mkr-video-inner > div {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .unmute-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            backdrop-filter: blur(3px);
+            transition: background 0.3s ease;
+        }
+
+        .unmute-overlay:hover { background: rgba(0,0,0,0.1); }
+
+        .unmute-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0,0,0,0.9);
+            border: 2px solid var(--brand-green);
+            padding: 14px 28px;
+            border-radius: 50px;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            font-size: 16px;
+            text-transform: uppercase;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.5);
+            animation: pulseUnmute 2s infinite;
+        }
+
+        @keyframes pulseUnmute {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 35px rgba(16, 185, 129, 0.8); }
+        }
+
+        @media (max-width: 600px) {
+            .video-section { padding: 50px 16px; }
+            .unmute-btn { padding: 10px 20px; font-size: 13px; }
+        }
+
+        /* Review / testimonial vertical scroll grid */
+        .reviews-wrapper {
+            padding: 90px 0;
+            background-color: #030405;
+            position: relative;
+            border-top: 1px solid rgba(16, 185, 129, 0.15);
+            border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+            overflow: hidden;
+        }
+
+        .reviews-wrapper::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(16, 185, 129, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(16, 185, 129, 0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+        }
+
+        .reviews-header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 2;
+            padding: 0 24px;
+        }
+
+        .reviews-grid-frame {
+            max-width: 1300px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+            height: 620px;
+            overflow: hidden;
+            mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+        }
+
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            height: 100%;
+            padding: 0 20px;
+        }
+
+        .reviews-col {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            height: max-content;
+        }
+
+        .reviews-col.scroll-up { animation: slideUp 40s linear infinite; }
+        .reviews-col.scroll-down { animation: slideDown 45s linear infinite; }
+        .reviews-col:hover { animation-play-state: paused; }
+
+        @keyframes slideUp {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
+        }
+        @keyframes slideDown {
+            0% { transform: translateY(-50%); }
+            100% { transform: translateY(0); }
+        }
+
+        .review-card-placeholder {
+            width: 100%;
+            aspect-ratio: 3 / 4;
+            border-radius: 14px;
+            background: var(--surface-card);
+            border: 1.5px dashed rgba(16, 185, 129, 0.35);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #64748b;
+            text-align: center;
+            padding: 16px;
+        }
+
+        .review-card-placeholder svg {
+            width: 30px;
+            height: 30px;
+            fill: var(--brand-green);
+            opacity: 0.7;
+        }
+
+        .review-card-placeholder span {
+            font-size: 12.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 900px) {
+            .reviews-grid { grid-template-columns: repeat(2, 1fr); }
+            .reviews-col.col-3 { display: none; }
+            .reviews-grid-frame { height: 480px; }
+        }
+
         @media (max-width: 900px) {
             .hero-tall-title { font-size: 52px; }
             .section-tall-title { font-size: 42px; }
@@ -527,6 +706,32 @@
                     Theaibot.io Smart NFC Card replaces old paper business cards with an automated walk-in growth machine. 
                     <strong>Scroll down to see the real card automation in action.</strong>
                 </p>
+            </div>
+        </section>
+
+        <!-- VIDEO SECTION -->
+        <section class="video-section">
+            <div class="content-container align-center">
+                <div class="badge-capsule">
+                    <span class="dot"></span>
+                    SEE IT IN ACTION
+                </div>
+                <h2 class="section-tall-title" style="margin-bottom: 24px;">
+                    WATCH HOW THE <span class="glow-green-txt">TAP WORKS</span>
+                </h2>
+                <div class="mkr-video-frame">
+                    <div class="mkr-video-inner">
+                        <div id="yt-player"></div>
+                        <div class="unmute-overlay" id="unmuteBtn" onclick="unmuteVideo()">
+                            <div class="unmute-btn">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                                </svg>
+                                Click to Unmute
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -589,6 +794,51 @@
                 </div>
             </div>
         </div>
+
+        <!-- REVIEWS SECTION (placeholder cards - real screenshots to be added later) -->
+        <section class="reviews-wrapper">
+            <div class="reviews-header">
+                <div class="badge-capsule">
+                    <span class="dot"></span>
+                    REAL RESULTS
+                </div>
+                <h2 class="section-tall-title">
+                    WHAT OUR <span class="glow-green-txt">CUSTOMERS SAY</span>
+                </h2>
+                <p class="narrative-p" style="max-width: 650px; margin: 16px auto 0;">
+                    Real customer screenshots will replace these placeholders soon.
+                </p>
+            </div>
+
+            <div class="reviews-grid-frame">
+                <div class="reviews-grid">
+                    <div class="reviews-col scroll-up col-1">
+                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+                    </div>
+                    <div class="reviews-col scroll-down col-2">
+                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+                    </div>
+                    <div class="reviews-col scroll-up col-3" style="animation-duration: 34s;">
+                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- SECTION 2: 1-TAP NFC DIRECT CONNECT (Card Moves Right & Angles) -->
         <section class="scrolly-section" id="section-nfc">
@@ -973,6 +1223,65 @@
             setTimeout(() => {
                 successBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }, 100);
+        }
+
+        /* ==========================================================
+           VIDEO SECTION - YouTube preview loop + unmute
+        =========================================================== */
+        var ytTag = document.createElement('script');
+        ytTag.src = "https://www.youtube.com/iframe_api";
+        document.getElementsByTagName('script')[0].parentNode.insertBefore(ytTag, document.getElementsByTagName('script')[0]);
+
+        var ytPlayer;
+        var ytPreviewMode = true;
+        var ytLoopInterval;
+
+        function onYouTubeIframeAPIReady() {
+            ytPlayer = new YT.Player('yt-player', {
+                height: '100%',
+                width: '100%',
+                videoId: '0b1nGhzHbU4',
+                playerVars: {
+                    autoplay: 1,
+                    controls: 0,
+                    rel: 0,
+                    showinfo: 0,
+                    modestbranding: 1,
+                    mute: 1,
+                    loop: 1,
+                    playlist: '0b1nGhzHbU4'
+                },
+                events: {
+                    onReady: onYtPlayerReady,
+                    onStateChange: onYtPlayerStateChange
+                }
+            });
+        }
+
+        function onYtPlayerReady(event) {
+            event.target.mute();
+            event.target.playVideo();
+            ytLoopInterval = setInterval(function() {
+                if (ytPreviewMode && ytPlayer.getCurrentTime && ytPlayer.getCurrentTime() > 5) {
+                    ytPlayer.seekTo(0);
+                }
+            }, 500);
+        }
+
+        function onYtPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.PAUSED && ytPreviewMode) {
+                ytPlayer.playVideo();
+            }
+        }
+
+        function unmuteVideo() {
+            if (!ytPlayer) return;
+            ytPreviewMode = false;
+            clearInterval(ytLoopInterval);
+            ytPlayer.unMute();
+            ytPlayer.setVolume(100);
+            ytPlayer.seekTo(0);
+            document.getElementById('unmuteBtn').style.display = 'none';
         }
     </script>
 </body>
