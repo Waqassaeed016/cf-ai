@@ -612,221 +612,6 @@
     </div>
 
     <script>
-        /* ==========================================================
-           VECTOR CANVAS TEXTURES (Instant Load, Zero External Delay)
-        =========================================================== */
-
-        function createFrontTexture() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 1024;
-            canvas.height = 640;
-            const ctx = canvas.getContext('2d');
-
-            // Deep obsidian gradient with emerald ambient corner sheen
-            const bgGrad = ctx.createRadialGradient(250, 160, 50, 512, 320, 600);
-            bgGrad.addColorStop(0, '#15241b');
-            bgGrad.addColorStop(0.5, '#0b0f14');
-            bgGrad.addColorStop(1, '#050709');
-            ctx.fillStyle = bgGrad;
-            ctx.fillRect(0, 0, 1024, 640);
-
-            // Diagonal grain lines
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
-            ctx.lineWidth = 1;
-            for (let i = 0; i < 1024; i += 40) {
-                ctx.beginPath();
-                ctx.moveTo(i, 0);
-                ctx.lineTo(i + 150, 640);
-                ctx.stroke();
-            }
-
-            // Top NFC Waves
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 9;
-            ctx.lineCap = 'round';
-            ctx.beginPath(); ctx.arc(135, 120, 55, -Math.PI * 0.75, -Math.PI * 0.25); ctx.stroke();
-            ctx.beginPath(); ctx.arc(135, 120, 36, -Math.PI * 0.75, -Math.PI * 0.25); ctx.stroke();
-            ctx.beginPath(); ctx.arc(135, 120, 18, -Math.PI * 0.75, -Math.PI * 0.25); ctx.stroke();
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '900 24px "Inter", sans-serif';
-            ctx.fillText('NFC', 112, 175);
-
-            // 4 Vertical Stripes (Top & Bottom)
-            const stripesX = 490;
-            const stripeW = 8;
-            const stripeH = 140;
-            const colors = ['#2563eb', '#ef4444', '#eab308', '#22c55e'];
-            colors.forEach((col, idx) => {
-                ctx.fillStyle = col;
-                ctx.fillRect(stripesX + (idx * 12), 30, stripeW, stripeH);
-                ctx.fillRect(stripesX + (idx * 12), 470, stripeW, stripeH);
-            });
-
-            // Center Infinity Ribbon
-            ctx.save();
-            ctx.translate(340, 320);
-            ctx.shadowColor = '#10b981';
-            ctx.shadowBlur = 35;
-
-            const ribbonGrad = ctx.createLinearGradient(-150, -80, 150, 80);
-            ribbonGrad.addColorStop(0, '#059669');
-            ribbonGrad.addColorStop(0.5, '#10b981');
-            ribbonGrad.addColorStop(1, '#34d399');
-
-            ctx.strokeStyle = ribbonGrad;
-            ctx.lineWidth = 42;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-
-            ctx.beginPath();
-            ctx.moveTo(-70, 70);
-            ctx.bezierCurveTo(-140, 30, -140, -60, -70, -70);
-            ctx.bezierCurveTo(-10, -80, 30, 80, 80, 70);
-            ctx.bezierCurveTo(140, 60, 140, -30, 80, -60);
-            ctx.bezierCurveTo(30, -80, -10, 80, -70, 70);
-            ctx.stroke();
-
-            // Inner gloss line
-            ctx.shadowBlur = 0;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-            ctx.lineWidth = 10;
-            ctx.beginPath();
-            ctx.moveTo(-60, 60);
-            ctx.bezierCurveTo(-120, 25, -120, -50, -60, -60);
-            ctx.bezierCurveTo(-10, -70, 25, 70, 70, 60);
-            ctx.stroke();
-
-            // Social badges
-            function drawBadge(x, y, bg, text, font = '700 20px "Inter"') {
-                ctx.save();
-                ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                ctx.shadowBlur = 10;
-                ctx.fillStyle = bg;
-                ctx.beginPath();
-                ctx.arc(x, y, 22, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = '#ffffff';
-                ctx.font = font;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(text, x, y + 1);
-                ctx.restore();
-            }
-
-            drawBadge(-100, -20, '#1877f2', 'f');
-            drawBadge(-60, 80, '#E1306C', '📷', '16px "Inter"');
-            drawBadge(105, 35, '#25D366', '📞', '16px "Inter"');
-            drawBadge(110, -35, '#000000', '♪', '18px "Inter"');
-            drawBadge(55, 80, '#0A66C2', 'in');
-            drawBadge(-20, -70, '#95BF47', 'S');
-            drawBadge(15, 85, '#ffffff', 'G', '800 20px "Inter"');
-            ctx.restore();
-
-            // Card Headline
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '900 64px "Inter", sans-serif';
-            ctx.fillText('Theaibot.io', 550, 310);
-
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = '700 24px "Inter", sans-serif';
-            ctx.letterSpacing = '5px';
-            ctx.fillText('AUTOMATION PLATFORM', 555, 360);
-
-            return new THREE.CanvasTexture(canvas);
-        }
-
-        function createBackTexture() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 1024;
-            canvas.height = 640;
-            const ctx = canvas.getContext('2d');
-
-            const bgGrad = ctx.createRadialGradient(800, 500, 80, 512, 320, 600);
-            bgGrad.addColorStop(0, '#132218');
-            bgGrad.addColorStop(0.6, '#0a0d13');
-            bgGrad.addColorStop(1, '#050709');
-            ctx.fillStyle = bgGrad;
-            ctx.fillRect(0, 0, 1024, 640);
-
-            // Top Notice
-            ctx.fillStyle = '#10b981';
-            ctx.font = '800 25px "Inter", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('Tap or Scan for Exclusive Offers', 512, 60);
-
-            ctx.strokeStyle = '#10b981';
-            ctx.lineWidth = 4;
-            ctx.beginPath(); ctx.moveTo(170, 52); ctx.lineTo(260, 52); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(764, 52); ctx.lineTo(854, 52); ctx.stroke();
-
-            // QR Matrix Box
-            const qrX = 140;
-            const qrY = 120;
-            const qrSize = 340;
-
-            // 4-color border around QR
-            ctx.lineWidth = 8;
-            ctx.strokeStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(qrX - 10, qrY - 10); ctx.lineTo(qrX + qrSize + 10, qrY - 10); ctx.stroke();
-            ctx.strokeStyle = '#22c55e'; ctx.beginPath(); ctx.moveTo(qrX + qrSize + 10, qrY - 10); ctx.lineTo(qrX + qrSize + 10, qrY + qrSize + 10); ctx.stroke();
-            ctx.strokeStyle = '#2563eb'; ctx.beginPath(); ctx.moveTo(qrX + qrSize + 10, qrY + qrSize + 10); ctx.lineTo(qrX - 10, qrY + qrSize + 10); ctx.stroke();
-            ctx.strokeStyle = '#eab308'; ctx.beginPath(); ctx.moveTo(qrX - 10, qrY + qrSize + 10); ctx.lineTo(qrX - 10, qrY - 10); ctx.stroke();
-
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(qrX, qrY, qrSize, qrSize);
-
-            ctx.fillStyle = '#050709';
-            function drawFinder(x, y) {
-                ctx.fillRect(x, y, 70, 70);
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(x + 12, y + 12, 46, 46);
-                ctx.fillStyle = '#050709';
-                ctx.fillRect(x + 24, y + 24, 22, 22);
-            }
-            drawFinder(qrX + 20, qrY + 20);
-            drawFinder(qrX + qrSize - 90, qrY + 20);
-            drawFinder(qrX + 20, qrY + qrSize - 90);
-
-            for (let r = 0; r < 14; r++) {
-                for (let c = 0; c < 14; c++) {
-                    if ((r < 4 && c < 4) || (r < 4 && c > 9) || (r > 9 && c < 4)) continue;
-                    if ((r + c * 3) % 2 === 0 || (r * c) % 3 === 0) {
-                        ctx.fillRect(qrX + 30 + (c * 20), qrY + 30 + (r * 20), 14, 14);
-                    }
-                }
-            }
-
-            // 5 Gold Stars & 3 Pillars
-            ctx.textAlign = 'left';
-            ctx.fillStyle = '#f59e0b';
-            ctx.font = '40px "Inter", sans-serif';
-            ctx.letterSpacing = '8px';
-            ctx.fillText('★ ★ ★ ★ ★', 540, 160);
-
-            function drawPillar(y, icon, title, desc) {
-                ctx.font = '28px "Inter", sans-serif';
-                ctx.fillText(icon, 540, y);
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '800 24px "Inter", sans-serif';
-                ctx.fillText(title, 590, y - 6);
-                ctx.fillStyle = '#94a3b8';
-                ctx.font = '500 20px "Inter", sans-serif';
-                ctx.fillText(desc, 590, y + 22);
-            }
-
-            drawPillar(240, '👥', 'Grow Your Business', 'Every Single Day');
-            drawPillar(340, '🛡️', 'Turn Every Tap', 'Into Sale');
-            drawPillar(440, '❤️', 'Build Customers Who', 'Keep Coming Back');
-
-            // Footer
-            ctx.textAlign = 'center';
-            ctx.fillStyle = '#cbd5e1';
-            ctx.font = '600 22px "Inter", sans-serif';
-            ctx.fillText('Powered by theaibot.io  |  One tap • Real Connections • Real growth.', 512, 575);
-
-            return new THREE.CanvasTexture(canvas);
-        }
-
         let scene, camera, renderer, cardMesh;
         const canvasElement = document.getElementById('webglCanvas');
 
@@ -837,7 +622,7 @@
             const height = window.innerHeight;
 
             camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
-            camera.position.z = 5.2;
+            camera.position.z = 6.4;
 
             renderer = new THREE.WebGLRenderer({
                 canvas: canvasElement,
@@ -864,12 +649,15 @@
             cyanBackLight.position.set(0, -4, -4);
             scene.add(cyanBackLight);
 
-            // Create Textures
-            const frontTex = createFrontTexture();
-            const backTex = createBackTexture();
+            // Load real card artwork as textures
             const maxAniso = renderer.capabilities.getMaxAnisotropy();
+            const textureLoader = new THREE.TextureLoader();
+            const frontTex = textureLoader.load('assets/card-front.png');
+            const backTex = textureLoader.load('assets/card-back.png');
             frontTex.anisotropy = maxAniso;
             backTex.anisotropy = maxAniso;
+            frontTex.encoding = THREE.sRGBEncoding;
+            backTex.encoding = THREE.sRGBEncoding;
 
             // Edge rim material
             const rimMat = new THREE.MeshStandardMaterial({
@@ -878,8 +666,8 @@
                 metalness: 0.8
             });
 
-            // ISO standard ratio: 3.38 x 2.13 x 0.05
-            const cardGeometry = new THREE.BoxGeometry(3.38, 2.13, 0.05);
+            // Matches real card artwork aspect ratio (318 x 520, portrait)
+            const cardGeometry = new THREE.BoxGeometry(2.07, 3.38, 0.05);
 
             const materials = [
                 rimMat, rimMat, rimMat, rimMat,
