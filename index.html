@@ -398,6 +398,85 @@
             margin-left: 0;
         }
 
+        /* Diagonal marquee strips (between hero and NFC section) */
+        .marquee-strip-container {
+            position: relative;
+            width: 100%;
+            height: 110px;
+            background-color: var(--bg-black);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        .marquee-strip {
+            position: absolute;
+            width: 120vw;
+            left: -10vw;
+            display: flex;
+            overflow: hidden;
+            white-space: nowrap;
+            padding: 12px 0;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .strip-dark {
+            background-color: #0d1219;
+            color: #94a3b8;
+            transform: rotate(3deg);
+            z-index: 1;
+            border-top: 1px solid rgba(16, 185, 129, 0.15);
+            border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+        }
+
+        .strip-green {
+            background: linear-gradient(90deg, var(--brand-green-dark), var(--brand-green));
+            color: #04120d;
+            transform: rotate(-2deg);
+            z-index: 2;
+        }
+
+        .marquee-content {
+            display: flex;
+            animation: scrollStrip 25s linear infinite;
+        }
+
+        .strip-dark .marquee-content {
+            animation-direction: reverse;
+            animation-duration: 30s;
+        }
+
+        .marquee-item {
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .marquee-separator {
+            margin: 0 20px;
+            opacity: 0.5;
+        }
+
+        .strip-dark .highlight { color: var(--brand-green-light); }
+        .strip-green .highlight { color: #04120d; text-decoration: underline; }
+
+        @keyframes scrollStrip {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        @media (max-width: 600px) {
+            .marquee-strip-container { height: 84px; }
+            .marquee-strip { font-size: 11px; }
+        }
+
         @media (max-width: 900px) {
             .hero-tall-title { font-size: 52px; }
             .section-tall-title { font-size: 42px; }
@@ -450,6 +529,66 @@
                 </p>
             </div>
         </section>
+
+        <!-- MARQUEE STRIPS -->
+        <div class="marquee-strip-container">
+            <div class="marquee-strip strip-dark">
+                <div class="marquee-content">
+                    <div class="marquee-item"><span class="highlight">SMART NFC BUSINESS CARD</span></div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item">GROW YOUR BUSINESS EVERY DAY</div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item">NO APP REQUIRED</div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item">CASH ON DELIVERY <span class="highlight">ALL OVER PAKISTAN</span></div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item"><span class="highlight">SMART NFC BUSINESS CARD</span></div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item">GROW YOUR BUSINESS EVERY DAY</div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item">NO APP REQUIRED</div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item">CASH ON DELIVERY <span class="highlight">ALL OVER PAKISTAN</span></div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item"><span class="highlight">SMART NFC BUSINESS CARD</span></div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item">GROW YOUR BUSINESS EVERY DAY</div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item">NO APP REQUIRED</div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item">CASH ON DELIVERY <span class="highlight">ALL OVER PAKISTAN</span></div>
+                    <div class="marquee-separator">•</div>
+                </div>
+            </div>
+            <div class="marquee-strip strip-green">
+                <div class="marquee-content">
+                    <div class="marquee-item"><span class="highlight">ONE TAP AUTOMATION</span></div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item">TURN EVERY TAP INTO A SALE</div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item">TRUSTED BY 500+ BUSINESSES</div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item">WHATSAPP &amp; SOCIAL SYNC <span class="highlight">BUILT-IN</span></div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item"><span class="highlight">ONE TAP AUTOMATION</span></div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item">TURN EVERY TAP INTO A SALE</div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item">TRUSTED BY 500+ BUSINESSES</div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item">WHATSAPP &amp; SOCIAL SYNC <span class="highlight">BUILT-IN</span></div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item"><span class="highlight">ONE TAP AUTOMATION</span></div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item">TURN EVERY TAP INTO A SALE</div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item">TRUSTED BY 500+ BUSINESSES</div>
+                    <div class="marquee-separator">•</div>
+                    <div class="marquee-item">WHATSAPP &amp; SOCIAL SYNC <span class="highlight">BUILT-IN</span></div>
+                    <div class="marquee-separator">•</div>
+                </div>
+            </div>
+        </div>
 
         <!-- SECTION 2: 1-TAP NFC DIRECT CONNECT (Card Moves Right & Angles) -->
         <section class="scrolly-section" id="section-nfc">
@@ -666,8 +805,8 @@
                 metalness: 0.8
             });
 
-            // Matches real card artwork aspect ratio (318 x 520, portrait)
-            const cardGeometry = new THREE.BoxGeometry(2.07, 3.38, 0.05);
+            // Matches real card artwork aspect ratio (318 x 520, portrait) - reduced size
+            const cardGeometry = new THREE.BoxGeometry(1.55, 2.53, 0.04);
 
             const materials = [
                 rimMat, rimMat, rimMat, rimMat,
@@ -707,7 +846,7 @@
             return [
                 {
                     progress: 0.0,
-                    pos: { x: 0, y: mobile ? 0.3 : 0, z: mobile ? -0.4 : 0 },
+                    pos: { x: 0, y: mobile ? -2.3 : -1.95, z: mobile ? -1.1 : -0.5 },
                     rot: { x: 0.1, y: -0.28, z: 0.04 }
                 },
                 {
@@ -793,6 +932,10 @@
             const elapsedTime = clock.getElapsedTime();
 
             if (cardMesh) {
+                // Extra shrink on mobile so the card never crowds the text
+                const targetScale = isMobile() ? 0.62 : 0.85;
+                cardMesh.scale.setScalar(lerp(cardMesh.scale.x, targetScale, 0.08));
+
                 // Subtle floating wave
                 const floatOffset = Math.sin(elapsedTime * 1.8) * 0.05;
 
