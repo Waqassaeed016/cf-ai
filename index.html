@@ -743,6 +743,25 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
 ================================================================ */
 let scene, camera, renderer, cardMesh;
 const canvasElement = document.getElementById('webglCanvas');
+
+/* Card artwork. The hosted files are used when they load; the copies shipped
+   next to this page are the fallback. A remote host must send
+   Access-Control-Allow-Origin, otherwise WebGL refuses the image. */
+const CARD_FRONT_URL = 'https://creativefankar.com/wp-content/uploads/2026/09/1-02.png';
+const CARD_BACK_URL  = 'https://creativefankar.com/wp-content/uploads/2026/09/1-01.png';
+const CARD_FRONT_LOCAL = 'assets/card-front.png';
+const CARD_BACK_LOCAL  = 'assets/card-back.png';
+
+function upgradeFace(material, url, prepare, loader){
+  if (!url) return;
+  loader.load(
+    url,
+    tex => { material.map = prepare(tex); material.needsUpdate = true; },
+    undefined,
+    () => console.warn('Card artwork could not be loaded from ' + url +
+                       ' (check that the host sends Access-Control-Allow-Origin) — using the bundled copy.')
+  );
+}
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const CARD_HALF_W = 0.775;
@@ -770,10 +789,20 @@ function initThreeScene(){
 
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
   const textureLoader = new THREE.TextureLoader();
-  const frontTex = textureLoader.load('assets/card-front.png');
-  const backTex = textureLoader.load('assets/card-back.png');
-  frontTex.anisotropy = maxAniso; backTex.anisotropy = maxAniso;
-  frontTex.encoding = THREE.sRGBEncoding; backTex.encoding = THREE.sRGBEncoding;
+  textureLoader.setCrossOrigin('anonymous');
+
+  function prepareTexture(tex){
+    tex.anisotropy = maxAniso;
+    tex.encoding = THREE.sRGBEncoding;
+    return tex;
+  }
+
+  // The bundled artwork loads first so the card is never blank, then the
+  // hosted version replaces it once it arrives. A cross-origin image served
+  // without Access-Control-Allow-Origin fails SILENTLY in WebGL and leaves a
+  // black card, so the local copy stays as the fallback.
+  const frontTex = prepareTexture(textureLoader.load(CARD_FRONT_LOCAL));
+  const backTex = prepareTexture(textureLoader.load(CARD_BACK_LOCAL));
 
   const rimMat = new THREE.MeshStandardMaterial({ color:0x111111, roughness:0.4, metalness:0.55 });
   const cardGeometry = new THREE.BoxGeometry(CARD_HALF_W*2, CARD_HALF_H*2, 0.04);
@@ -784,6 +813,9 @@ function initThreeScene(){
   ];
   cardMesh = new THREE.Mesh(cardGeometry, materials);
   scene.add(cardMesh);
+
+  upgradeFace(materials[4], CARD_FRONT_URL, prepareTexture, textureLoader);
+  upgradeFace(materials[5], CARD_BACK_URL, prepareTexture, textureLoader);
 
   window.addEventListener('resize', onWindowResize);
   animate();
