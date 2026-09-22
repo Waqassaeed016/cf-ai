@@ -473,8 +473,12 @@
         }
 
         @media (max-width: 600px) {
-            .marquee-strip-container { height: 84px; }
-            .marquee-strip { font-size: 11px; }
+            .marquee-strip-container { height: 70px; margin-top: 10px; }
+            .marquee-strip { font-size: 10px; padding: 9px 0; letter-spacing: 1px; }
+            .strip-dark { transform: rotate(1.5deg); }
+            .strip-green { transform: rotate(-1deg); }
+            .marquee-item { padding: 0 12px; }
+            .marquee-separator { margin: 0 12px; }
         }
 
         /* Video section */
@@ -709,6 +713,9 @@
             </div>
         </section>
 
+        <!-- No 3D card zone: video + strips + reviews (card is hidden here so it never overlaps this content) -->
+        <div id="noCardZone">
+
         <!-- VIDEO SECTION -->
         <section class="video-section">
             <div class="content-container align-center">
@@ -839,6 +846,9 @@
                 </div>
             </div>
         </section>
+
+        </div>
+        <!-- end noCardZone -->
 
         <!-- SECTION 2: 1-TAP NFC DIRECT CONNECT (Card Moves Right & Angles) -->
         <section class="scrolly-section" id="section-nfc">
@@ -1101,7 +1111,7 @@
                 },
                 {
                     progress: 0.25,
-                    pos: { x: mobile ? 0 : 1.35, y: mobile ? 1.0 : 0.1, z: mobile ? -0.6 : 0.3 },
+                    pos: { x: mobile ? 0 : 2.0, y: mobile ? 1.6 : -0.4, z: mobile ? -0.8 : 0.2 },
                     rot: { x: 0.16, y: -0.42, z: -0.06 }
                 },
                 {
@@ -1146,6 +1156,17 @@
             const tracker = document.getElementById('scrollTracker');
             if (tracker) {
                 tracker.style.opacity = scrollFraction > 0.85 ? '0' : '1';
+            }
+
+            // Hide the 3D card while the video/strips/reviews zone is on screen
+            // (that content has no card animation of its own, so keep the card off it)
+            const noCardZone = document.getElementById('noCardZone');
+            const stage = document.getElementById('webgl-stage-fixed');
+            if (noCardZone && stage) {
+                const rect = noCardZone.getBoundingClientRect();
+                const inZone = rect.top < window.innerHeight * 0.6 && rect.bottom > window.innerHeight * 0.4;
+                stage.style.opacity = inZone ? '0' : '1';
+                stage.style.transition = 'opacity 0.4s ease';
             }
 
             const keyframes = getCardKeyframes();
