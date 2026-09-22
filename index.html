@@ -285,22 +285,30 @@ body{
   .annotation .label{font-size:11px;padding:5px 9px;}
   .annotation .leader{width:22px;}
 }
-/* On small phones the callouts are replaced by the readable feature list
-   under the card, so nothing overlaps the artwork. */
+/* Phones keep the same pointing callouts, just tighter: short leaders and
+   wrapping labels so they sit in the margins either side of the card. */
 @media (max-width:560px){
-  .annotation{display:none;}
+  .annotation{gap:5px;}
+  .annotation .leader{width:12px;}
+  .annotation .marker{width:7px;height:7px;box-shadow:0 0 0 3px rgba(255,255,255,0.12);}
+  .annotation .label{
+    font-size:10px;padding:4px 7px;border-radius:6px;
+    white-space:normal;max-width:98px;line-height:1.25;
+  }
+}
+@media (max-width:360px){
+  .annotation .label{max-width:84px;font-size:9.5px;}
 }
 
+/* Only used as the fallback when the 3D card cannot render at all. */
 .mobile-feature-strip{display:none;max-width:520px;margin:18px auto 0;padding:0 6px;}
+body.no-3d .mobile-feature-strip.is-active{display:block;}
 .mobile-feature-strip ul{list-style:none;display:flex;flex-direction:column;gap:10px;}
 .mobile-feature-strip li{
   display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text-muted);
   background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 14px;
 }
 .mobile-feature-strip li .dotmark{width:7px;height:7px;border-radius:50%;background:var(--blue);flex-shrink:0;}
-@media (max-width:560px){
-  .mobile-feature-strip{display:block;}
-}
 
 /* powered-by signature */
 .powered-by{text-align:center;margin-top:34px;}
@@ -322,13 +330,14 @@ body{
 @media (max-width:768px){.mobile-card-spacer{height:33vh;min-height:200px;}}
 
 /* ---------- video section ---------- */
-.video-section{padding:90px 24px;position:relative;}
+.video-section{padding:70px 24px;position:relative;}
+/* Vertical (9:16) player — phone-shaped, the way the footage is shot */
 .mkr-video-frame{
-  position:relative;border-radius:16px;padding:8px;max-width:900px;margin:0 auto;
+  position:relative;border-radius:22px;padding:8px;max-width:360px;margin:0 auto;
   background:var(--surface);border:1px solid var(--border);
 }
-.mkr-video-inner{border-radius:10px;overflow:hidden;background:#000;aspect-ratio:16/9;position:relative;}
-.mkr-video-inner iframe,.mkr-video-inner>div{width:100%;height:100%;display:block;}
+.mkr-video-inner{border-radius:16px;overflow:hidden;background:#000;aspect-ratio:9/16;position:relative;}
+.mkr-video-inner iframe,.mkr-video-inner>#yt-player{width:100%;height:100%;display:block;}
 .unmute-overlay{
   position:absolute;inset:0;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;
   cursor:pointer;z-index:10;backdrop-filter:blur(3px);transition:background .3s ease;
@@ -338,34 +347,56 @@ body{
   display:flex;align-items:center;gap:10px;background:rgba(0,0,0,0.9);border:2px solid var(--text);
   padding:13px 26px;border-radius:50px;color:#fff;font-weight:800;font-size:14.5px;text-transform:uppercase;
 }
-@media (max-width:600px){.video-section{padding:50px 16px;}.unmute-btn{padding:10px 20px;font-size:12.5px;}}
+@media (max-width:600px){
+  .video-section{padding:44px 16px;}
+  .mkr-video-frame{max-width:300px;}
+  .unmute-btn{padding:10px 18px;font-size:12px;}
+}
 
 /* ---------- reviews ---------- */
 .reviews-wrapper{padding:90px 0;position:relative;overflow:hidden;}
 .reviews-header{text-align:center;margin-bottom:46px;position:relative;z-index:2;padding:0 24px;}
 .reviews-grid-frame{
-  max-width:1300px;margin:0 auto;position:relative;z-index:2;height:600px;overflow:hidden;
-  mask-image:linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
-  -webkit-mask-image:linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+  max-width:1240px;margin:0 auto;position:relative;z-index:2;height:720px;overflow:hidden;
+  mask-image:linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
+  -webkit-mask-image:linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
 }
-.reviews-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;height:100%;padding:0 20px;}
-.reviews-col{display:flex;flex-direction:column;gap:18px;height:max-content;}
-.reviews-col.scroll-up{animation:slideUp 40s linear infinite;}
-.reviews-col.scroll-down{animation:slideDown 45s linear infinite;}
+.reviews-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;height:100%;padding:0 20px;}
+@media (max-width:1200px){.reviews-grid{grid-template-columns:repeat(3,1fr);}.reviews-col.col-4{display:none;}}
+.reviews-col{display:flex;flex-direction:column;gap:24px;height:max-content;}
+.reviews-col.scroll-up{animation:slideUp 46s linear infinite;}
+.reviews-col.scroll-down{animation:slideDown 52s linear infinite;}
 .reviews-col:hover{animation-play-state:paused;}
 @keyframes slideUp{0%{transform:translateY(0);}100%{transform:translateY(-50%);}}
 @keyframes slideDown{0%{transform:translateY(-50%);}100%{transform:translateY(0);}}
-.review-card-placeholder{
-  width:100%;aspect-ratio:3/4;border-radius:14px;background:var(--surface);
-  border:1.5px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:10px;color:#666;text-align:center;padding:16px;
+
+/* Screenshot-first review tile: the image is the content, chrome stays minimal */
+.review-card{
+  position:relative;width:100%;aspect-ratio:9/16;border-radius:18px;overflow:hidden;
+  background:var(--bg-1);border:1px solid var(--border);
+  transition:transform .3s ease, border-color .3s ease;
 }
-.review-card-placeholder svg{width:28px;height:28px;fill:var(--yellow);opacity:.8;}
-.review-card-placeholder span{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.review-card:hover{transform:translateY(-4px);border-color:rgba(255,255,255,0.28);}
+.review-card img{width:100%;height:100%;object-fit:cover;display:block;}
+.review-card figcaption{display:none;}
+.review-card.is-empty{border-style:dashed;}
+.review-card.is-empty figcaption{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  position:absolute;inset:0;padding:18px;text-align:center;color:#6b6b6b;
+  font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;line-height:1.5;
+}
+.review-card.is-empty figcaption svg{width:26px;height:26px;fill:var(--yellow);opacity:.75;}
+
 @media (max-width:900px){
-  .reviews-grid{grid-template-columns:repeat(2,1fr);}
-  .reviews-col.col-3{display:none;}
-  .reviews-grid-frame{height:470px;}
+  /* phones swipe through full-size screenshots instead of a shrunken grid */
+  .reviews-grid-frame{
+    height:auto;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;mask-image:none;-webkit-mask-image:none;padding-bottom:10px;
+  }
+  .reviews-grid{display:flex;grid-template-columns:none;height:auto;gap:14px;padding:0 16px;}
+  .reviews-col{flex-direction:row;gap:14px;animation:none !important;height:auto;}
+  .review-card{width:70vw;max-width:320px;flex:0 0 auto;scroll-snap-align:center;}
+  .review-card.is-dupe{display:none;}
 }
 
 /* ---------- order form ---------- */
@@ -373,17 +404,12 @@ body{
   background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:40px;
   max-width:580px;margin:0 auto;text-align:center;
 }
-.order-input{
-  width:100%;background:var(--bg-1);border:1px solid var(--border);color:var(--text);padding:14px 16px;
-  border-radius:8px;font-size:14.5px;margin-bottom:14px;outline:none;font-family:'Inter',sans-serif;
-  transition:border-color .2s;
+.order-note{font-size:12.5px;color:var(--text-muted);margin-top:16px;line-height:1.55;}
+.order-trust{
+  display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:18px;
+  font-size:11.5px;font-weight:700;color:var(--text-muted);
 }
-.order-input:focus{border-color:var(--blue);}
-.pillars-badge-row{display:flex;gap:12px;margin-top:20px;}
-.pillar-col{flex:1;background:var(--bg-1);border:1px solid var(--border);padding:12px;border-radius:8px;text-align:center;}
-.pillar-col .emoji{font-size:19px;margin-bottom:4px;display:block;}
-.pillar-col .title{font-size:10.5px;font-weight:800;color:var(--text);text-transform:uppercase;}
-.demo-note{font-size:11.5px;color:var(--text-muted);margin-top:14px;line-height:1.5;}
+.order-trust span{border:1px solid var(--border);border-radius:20px;padding:6px 12px;background:var(--bg-1);}
 
 @media (max-width:900px){
   .hero-tall-title{font-size:48px;}
@@ -391,7 +417,6 @@ body{
   .scrolly-section{min-height:100vh;padding:40px 18px;}
   .align-left-box,.align-right-box{max-width:100%;}
   .story-glass-card{padding:24px 20px;}
-  .pillars-badge-row{flex-direction:column;}
 }
 @media (max-width:600px){
   /* the hero card occupies the lower band on phones; the hint would sit on it */
@@ -443,6 +468,27 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
       <div class="hero-card-slot" aria-hidden="true"></div>
     </div>
   </section>
+
+  <!-- ================= VIDEO — vertical player, straight after the hero ================= -->
+  <div class="no-card-zone" id="zone-video">
+    <section class="video-section">
+      <div class="content-container align-center">
+        <div class="badge-capsule"><span class="dot"></span>SEE IT IN ACTION</div>
+        <h2 class="section-tall-title" style="margin-bottom:24px;">Watch How The <span class="accent-blue">Tap Works</span></h2>
+        <div class="mkr-video-frame">
+          <div class="mkr-video-inner">
+            <div id="yt-player"></div>
+            <div class="unmute-overlay" id="unmuteBtn" onclick="unmuteVideo()">
+              <div class="unmute-btn">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                Click to Unmute
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
 
   <!-- ================= MARQUEE (no-card zone) ================= -->
   <div class="no-card-zone" id="zone-marquee">
@@ -508,7 +554,8 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
 
     <div class="showcase-stage" id="showcaseStage" aria-hidden="true"></div>
 
-    <div class="mobile-feature-strip" id="mobileFeaturesFront">
+    <!-- fallback list, only shown when the 3D card cannot render -->
+    <div class="mobile-feature-strip is-active" id="mobileFeaturesFront">
       <ul>
         <li><span class="dotmark"></span>Instant NFC Connection</li>
         <li><span class="dotmark"></span>Your Business Identity</li>
@@ -517,7 +564,7 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
         <li><span class="dotmark"></span>All Your Links, One Place</li>
       </ul>
     </div>
-    <div class="mobile-feature-strip" id="mobileFeaturesBack" style="display:none;">
+    <div class="mobile-feature-strip" id="mobileFeaturesBack">
       <ul>
         <li><span class="dotmark"></span>Scan The QR Code</li>
         <li><span class="dotmark"></span>Instant Digital Access</li>
@@ -620,62 +667,195 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
     </div>
   </section>
 
-  <!-- ================= VIDEO + REVIEWS (no-card zone) ================= -->
+  <!-- ================= CUSTOMER REVIEWS (no-card zone) ================= -->
   <div class="no-card-zone" id="zone-media">
-
-    <section class="video-section">
-      <div class="content-container align-center">
-        <div class="badge-capsule"><span class="dot"></span>SEE IT IN ACTION</div>
-        <h2 class="section-tall-title" style="margin-bottom:24px;">Watch How The <span class="accent-blue">Tap Works</span></h2>
-        <div class="mkr-video-frame">
-          <div class="mkr-video-inner">
-            <div id="yt-player"></div>
-            <div class="unmute-overlay" id="unmuteBtn" onclick="unmuteVideo()">
-              <div class="unmute-btn">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-                Click to Unmute
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="brand-stripe-divider"></div>
 
     <section class="reviews-wrapper">
       <div class="reviews-header">
         <div class="badge-capsule"><span class="dot"></span>REAL RESULTS</div>
         <h2 class="section-tall-title">What Our <span class="accent-green">Customers Say</span></h2>
         <p class="narrative-p" style="max-width:620px;margin:16px auto 0;">
-          Real customer screenshots will replace these placeholders soon.
+          Drop your real WhatsApp and Google review screenshots into
+          <strong>assets/reviews/</strong> and they appear here full size.
         </p>
       </div>
       <div class="reviews-grid-frame">
         <div class="reviews-grid">
           <div class="reviews-col scroll-up col-1">
-            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+            <figure class="review-card">
+              <img src="assets/reviews/r1.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r1.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card">
+              <img src="assets/reviews/r2.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r2.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card">
+              <img src="assets/reviews/r3.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r3.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card is-dupe">
+              <img src="assets/reviews/r1.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r1.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card is-dupe">
+              <img src="assets/reviews/r2.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r2.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card is-dupe">
+              <img src="assets/reviews/r3.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r3.jpg
+              </figcaption>
+            </figure>
           </div>
           <div class="reviews-col scroll-down col-2">
-            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+            <figure class="review-card">
+              <img src="assets/reviews/r4.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r4.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card">
+              <img src="assets/reviews/r5.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r5.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card">
+              <img src="assets/reviews/r6.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r6.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card is-dupe">
+              <img src="assets/reviews/r4.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r4.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card is-dupe">
+              <img src="assets/reviews/r5.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r5.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card is-dupe">
+              <img src="assets/reviews/r6.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r6.jpg
+              </figcaption>
+            </figure>
           </div>
-          <div class="reviews-col scroll-up col-3" style="animation-duration:34s;">
-            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+          <div class="reviews-col scroll-up col-3" style="animation-duration:40s;">
+            <figure class="review-card">
+              <img src="assets/reviews/r7.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r7.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card">
+              <img src="assets/reviews/r8.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r8.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card">
+              <img src="assets/reviews/r9.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r9.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card is-dupe">
+              <img src="assets/reviews/r7.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r7.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card is-dupe">
+              <img src="assets/reviews/r8.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r8.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card is-dupe">
+              <img src="assets/reviews/r9.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r9.jpg
+              </figcaption>
+            </figure>
+          </div>
+          <div class="reviews-col scroll-down col-4" style="animation-duration:48s;">
+            <figure class="review-card">
+              <img src="assets/reviews/r10.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r10.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card">
+              <img src="assets/reviews/r11.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r11.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card">
+              <img src="assets/reviews/r12.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r12.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card is-dupe">
+              <img src="assets/reviews/r10.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r10.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card is-dupe">
+              <img src="assets/reviews/r11.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r11.jpg
+              </figcaption>
+            </figure>
+            <figure class="review-card is-dupe">
+              <img src="assets/reviews/r12.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
+              <figcaption>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                Screenshot slot<br>assets/reviews/r12.jpg
+              </figcaption>
+            </figure>
           </div>
         </div>
       </div>
@@ -689,35 +869,25 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
     <div class="content-container">
       <div class="order-form-box">
         <div class="badge-capsule"><span class="dot"></span>INTRODUCTORY PRICE</div>
-        <h2 class="section-tall-title" style="font-size:42px;margin-bottom:8px;">Get Your <span class="accent-blue">Smart NFC Card</span></h2>
-        <p style="color:var(--text-muted);font-size:14px;margin-bottom:22px;">
-          Pay Cash on Delivery • Free Delivery Anywhere in Pakistan
+        <h2 class="section-tall-title" style="font-size:42px;margin-bottom:10px;">Get Your <span class="accent-blue">Smart NFC Card</span></h2>
+        <p style="color:var(--text-muted);font-size:14px;margin-bottom:26px;">
+          Pay Cash on Delivery &bull; Free Delivery Anywhere in Pakistan
         </p>
 
-        <form onsubmit="handleFormSubmit(event)">
-          <input type="text" class="order-input" id="custName" placeholder="Full Name / Apka Naam" required autocomplete="name">
-          <input type="tel" class="order-input" id="custPhone" placeholder="WhatsApp / Mobile Number" required autocomplete="tel">
-          <input type="text" class="order-input" id="custAddress" placeholder="Delivery Address & City (e.g. Lahore, Karachi, ISB)" required autocomplete="street-address">
+        <a class="btn-cta-main" id="orderNowBtn" href="#" rel="noopener">
+          <span class="btn-text-main">ORDER NOW (RS. 1,999)</span>
+          <span class="btn-text-sub">Cash on Delivery &bull; NFC + QR Card</span>
+        </a>
 
-          <button type="submit" class="btn-cta-main" style="margin-top:6px;">
-            <span class="btn-text-main">ORDER NOW (RS. 1,999)</span>
-            <span class="btn-text-sub">Cash on Delivery • NFC + QR Card</span>
-          </button>
-        </form>
-
-        <div id="orderSuccessMsg" role="status" style="display:none;background:var(--bg-1);border:1px solid var(--green);color:var(--text);padding:14px;border-radius:8px;margin-top:18px;font-size:13.5px;font-weight:600;">
-          Shukriya! Aapka order request receive ho gaya hai. Dispatch details WhatsApp par receive hongi.
+        <div class="order-trust">
+          <span>Cash on Delivery</span>
+          <span>Free Delivery</span>
+          <span>NFC + QR</span>
         </div>
 
-        <p class="demo-note">
-          This form is a UI demo of the ordering flow — connect a backend to process real orders and payments.
+        <p class="order-note" id="orderNote">
+          The button opens your checkout with the card already in the cart.
         </p>
-
-        <div class="pillars-badge-row">
-          <div class="pillar-col"><span class="emoji">👥</span><div class="title">Grow Your Business</div></div>
-          <div class="pillar-col"><span class="emoji">📇</span><div class="title">Save Contact In 1 Tap</div></div>
-          <div class="pillar-col"><span class="emoji">❤️</span><div class="title">Keep Customers Coming Back</div></div>
-        </div>
       </div>
     </div>
   </section>
@@ -782,6 +952,8 @@ function onWindowResize(){
   camera.aspect = w/h;
   camera.updateProjectionMatrix();
   renderer.setSize(w,h);
+  // label sizes change with the breakpoint, so drop the cached heights
+  Object.values(annotationEls).forEach(el=>{ el._h = 0; });
 }
 
 function lerp(a,b,t){ return a + (b-a) * t; }
@@ -806,7 +978,7 @@ function poseFor(mobile){
     // scroll-driven flip: turns through the back and settles facing front again
     reveal:     { pos:{x:0, y:-0.45, z:0.7},             rot:{x:0.05, y:TURN, z:0},      s: mobile?0.62:0.85 },
     // centered product pose, sits clear of the heading and Front/Back buttons
-    showcase:   { pos:{x:0, y:mobile?-0.45:-0.62, z:0.5}, rot:{x:0, y:TURN, z:0},         s: mobile?0.55:0.82 },
+    showcase:   { pos:{x:0, y:mobile?-0.4:-0.62, z:0.5},  rot:{x:0, y:TURN, z:0},         s: mobile?0.46:0.82 },
     // On mobile the alternating rhythm becomes vertical: the card takes the
     // reserved band (below the copy in A/C, above it in B/D) and never overlaps.
     saveContact:{ pos:{x:mobile?0.3:1.95, y:mobile?-1.28:-0.15, z:0.2}, rot:{x:0.08, y:TURN-0.32, z:-0.03}, s: mobile?0.46:0.8 },
@@ -995,6 +1167,7 @@ function updateAnnotations(){
   // camera, so nothing ever labels a face the visitor cannot see.
   const facing = Math.cos(cardMesh.rotation.y);
   const faceVisible = manualSide === 'front' ? facing > 0.55 : facing < -0.55;
+  const visible = [];
 
   ALL_FEATURES.forEach(f=>{
     const el = annotationEls[f.id];
@@ -1010,8 +1183,26 @@ function updateAnnotations(){
     const screenY = (-projVec.y*0.5+0.5)*window.innerHeight;
 
     el.style.left = screenX + 'px';
-    el.style.top = screenY + 'px';
+    el._y = screenY;
+    el._side = f.side;
     el.classList.add('show');
+    visible.push(el);
+  });
+
+  // Keep labels from stacking on top of each other: within each side, push
+  // any callout that would collide with the one above it further down.
+  ['left','right'].forEach(side=>{
+    const group = visible.filter(el=>el._side===side).sort((a,b)=>a._y-b._y);
+    for (let i=0;i<group.length;i++){
+      const el = group[i];
+      if (!el._h) el._h = el.offsetHeight || 28;
+      if (i>0){
+        const prev = group[i-1];
+        const minY = prev._y + (prev._h + el._h)/2 + 6;
+        if (el._y < minY) el._y = minY;
+      }
+      el.style.top = el._y + 'px';
+    }
   });
 }
 
@@ -1028,8 +1219,8 @@ function setSide(side){
   btnBack.classList.toggle('active', side==='back');
   btnFront.setAttribute('aria-pressed', side==='front');
   btnBack.setAttribute('aria-pressed', side==='back');
-  mobFront.style.display = side==='front' ? 'block' : 'none';
-  mobBack.style.display = side==='back' ? 'block' : 'none';
+  mobFront.classList.toggle('is-active', side==='front');
+  mobBack.classList.toggle('is-active', side==='back');
   updateScrollPoses(); // apply the manual side immediately, without waiting for a scroll
 }
 btnFront.addEventListener('click', ()=>setSide('front'));
@@ -1086,8 +1277,8 @@ window.onload = function(){
     if (stage) stage.style.display = 'none';
     const tracker = document.getElementById('scrollTracker');
     if (tracker) tracker.style.display = 'none';
-    document.querySelectorAll('.mobile-feature-strip').forEach(el=>{ el.style.display = 'none'; });
-    document.getElementById('mobileFeaturesFront').style.display = 'block';
+    document.body.classList.add('no-3d');
+    document.getElementById('mobileFeaturesFront').classList.add('is-active');
     return;
   }
   initThreeScene();
@@ -1095,20 +1286,27 @@ window.onload = function(){
 };
 
 /* ================================================================
-   ORDER FORM (UI demo only — no backend wired up)
+   ORDER BUTTON
+   Put your checkout URL here — the one that already has the card in
+   the cart (e.g. a Shopify cart permalink). Until it is set, the
+   button says so instead of linking nowhere.
 ================================================================ */
-function handleFormSubmit(e){
-  e.preventDefault();
-  const name = document.getElementById('custName').value.trim();
-  const phone = document.getElementById('custPhone').value.trim();
-  const address = document.getElementById('custAddress').value.trim();
-  const successBox = document.getElementById('orderSuccessMsg');
-  if (!name || !phone || !address) return;
+const CHECKOUT_URL = '';
 
-  successBox.textContent = `Shukriya ${name}! Aapka order request receive ho gaya hai. WhatsApp par confirmation bheji jayegi.`;
-  successBox.style.display = 'block';
-  setTimeout(()=>{ successBox.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block:'nearest' }); }, 100);
-}
+(function setupOrderButton(){
+  const btn = document.getElementById('orderNowBtn');
+  const note = document.getElementById('orderNote');
+  if (CHECKOUT_URL){
+    btn.href = CHECKOUT_URL;
+  } else {
+    btn.removeAttribute('href');
+    btn.setAttribute('role','link');
+    btn.setAttribute('aria-disabled','true');
+    btn.style.opacity = '0.75';
+    btn.style.cursor = 'not-allowed';
+    note.textContent = 'Checkout link not set yet — add your cart URL to CHECKOUT_URL in this file.';
+  }
+})();
 
 /* ================================================================
    VIDEO — YouTube muted preview loop + unmute
@@ -1117,12 +1315,15 @@ var ytTag = document.createElement('script');
 ytTag.src = "https://www.youtube.com/iframe_api";
 document.getElementsByTagName('script')[0].parentNode.insertBefore(ytTag, document.getElementsByTagName('script')[0]);
 
+/* Swap this for the vertical (9:16 / Shorts) cut of the demo video. */
+const VIDEO_ID = '0b1nGhzHbU4';
+
 var ytPlayer, ytPreviewMode = true, ytLoopInterval;
 
 function onYouTubeIframeAPIReady(){
   ytPlayer = new YT.Player('yt-player', {
-    height:'100%', width:'100%', videoId:'0b1nGhzHbU4',
-    playerVars:{ autoplay:1, controls:0, rel:0, showinfo:0, modestbranding:1, mute:1, loop:1, playlist:'0b1nGhzHbU4' },
+    height:'100%', width:'100%', videoId: VIDEO_ID,
+    playerVars:{ autoplay:1, controls:0, rel:0, showinfo:0, modestbranding:1, mute:1, loop:1, playlist: VIDEO_ID, playsinline:1 },
     events:{ onReady:onYtPlayerReady, onStateChange:onYtPlayerStateChange }
   });
 }
