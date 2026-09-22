@@ -357,18 +357,33 @@ body.no-3d .mobile-feature-strip.is-active{display:block;}
 .reviews-wrapper{padding:90px 0;position:relative;overflow:hidden;}
 .reviews-header{text-align:center;margin-bottom:46px;position:relative;z-index:2;padding:0 24px;}
 .reviews-grid-frame{
-  max-width:1240px;margin:0 auto;position:relative;z-index:2;height:720px;overflow:hidden;
-  mask-image:linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
-  -webkit-mask-image:linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
+  max-width:1240px;margin:0 auto;position:relative;z-index:2;height:660px;overflow:hidden;
+  mask-image:
+    linear-gradient(to bottom, transparent, black 14%, black 86%, transparent),
+    linear-gradient(90deg, transparent, black 7%, black 93%, transparent);
+  -webkit-mask-image:
+    linear-gradient(to bottom, transparent, black 14%, black 86%, transparent),
+    linear-gradient(90deg, transparent, black 7%, black 93%, transparent);
+  mask-composite:intersect;
+  -webkit-mask-composite:source-in;
 }
-.reviews-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;height:100%;padding:0 20px;}
-@media (max-width:1200px){.reviews-grid{grid-template-columns:repeat(3,1fr);}.reviews-col.col-4{display:none;}}
-.reviews-col{display:flex;flex-direction:column;gap:24px;height:max-content;}
+/* The whole wall is tilted; the columns auto-scroll inside it. Oversizing and
+   the negative offset keep the rotated corners filled. */
+.reviews-wall{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:22px;
+  height:118%;width:116%;margin:-5% 0 0 -8%;
+  transform:rotate(-6deg);
+}
+@media (max-width:1200px){
+  .reviews-wall{grid-template-columns:repeat(3,1fr);}
+}
+.reviews-col{display:flex;flex-direction:column;gap:22px;height:max-content;}
 .reviews-col.scroll-up{animation:slideUp 46s linear infinite;}
 .reviews-col.scroll-down{animation:slideDown 52s linear infinite;}
 .reviews-col:hover{animation-play-state:paused;}
 @keyframes slideUp{0%{transform:translateY(0);}100%{transform:translateY(-50%);}}
 @keyframes slideDown{0%{transform:translateY(-50%);}100%{transform:translateY(0);}}
+@keyframes marqueeX{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
 
 /* Screenshot-first review tile: the image is the content, chrome stays minimal */
 .review-card{
@@ -388,15 +403,20 @@ body.no-3d .mobile-feature-strip.is-active{display:block;}
 .review-card.is-empty figcaption svg{width:26px;height:26px;fill:var(--yellow);opacity:.75;}
 
 @media (max-width:900px){
-  /* phones swipe through full-size screenshots instead of a shrunken grid */
+  /* phones get the same tilted wall, running sideways on its own */
   .reviews-grid-frame{
-    height:auto;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
-    -webkit-overflow-scrolling:touch;mask-image:none;-webkit-mask-image:none;padding-bottom:10px;
+    height:auto;overflow:hidden;
+    mask-image:linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image:linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
   }
-  .reviews-grid{display:flex;grid-template-columns:none;height:auto;gap:14px;padding:0 16px;}
-  .reviews-col{flex-direction:row;gap:14px;animation:none !important;height:auto;}
-  .review-card{width:70vw;max-width:320px;flex:0 0 auto;scroll-snap-align:center;}
-  .review-card.is-dupe{display:none;}
+  .reviews-wall{
+    display:flex;flex-direction:column;gap:14px;
+    height:auto;width:100%;margin:0;padding:18px 0;
+    transform:rotate(-4deg) scale(1.06);
+  }
+  .reviews-row{display:flex;gap:14px;width:max-content;animation:marqueeX 44s linear infinite;}
+  .reviews-row.reverse{animation-direction:reverse;animation-duration:52s;}
+  .review-card{width:42vw;max-width:210px;flex:0 0 auto;}
 }
 
 /* ---------- order form ---------- */
@@ -680,184 +700,7 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
         </p>
       </div>
       <div class="reviews-grid-frame">
-        <div class="reviews-grid">
-          <div class="reviews-col scroll-up col-1">
-            <figure class="review-card">
-              <img src="assets/reviews/r1.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r1.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card">
-              <img src="assets/reviews/r2.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r2.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card">
-              <img src="assets/reviews/r3.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r3.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card is-dupe">
-              <img src="assets/reviews/r1.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r1.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card is-dupe">
-              <img src="assets/reviews/r2.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r2.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card is-dupe">
-              <img src="assets/reviews/r3.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r3.jpg
-              </figcaption>
-            </figure>
-          </div>
-          <div class="reviews-col scroll-down col-2">
-            <figure class="review-card">
-              <img src="assets/reviews/r4.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r4.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card">
-              <img src="assets/reviews/r5.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r5.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card">
-              <img src="assets/reviews/r6.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r6.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card is-dupe">
-              <img src="assets/reviews/r4.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r4.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card is-dupe">
-              <img src="assets/reviews/r5.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r5.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card is-dupe">
-              <img src="assets/reviews/r6.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r6.jpg
-              </figcaption>
-            </figure>
-          </div>
-          <div class="reviews-col scroll-up col-3" style="animation-duration:40s;">
-            <figure class="review-card">
-              <img src="assets/reviews/r7.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r7.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card">
-              <img src="assets/reviews/r8.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r8.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card">
-              <img src="assets/reviews/r9.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r9.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card is-dupe">
-              <img src="assets/reviews/r7.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r7.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card is-dupe">
-              <img src="assets/reviews/r8.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r8.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card is-dupe">
-              <img src="assets/reviews/r9.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r9.jpg
-              </figcaption>
-            </figure>
-          </div>
-          <div class="reviews-col scroll-down col-4" style="animation-duration:48s;">
-            <figure class="review-card">
-              <img src="assets/reviews/r10.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r10.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card">
-              <img src="assets/reviews/r11.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r11.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card">
-              <img src="assets/reviews/r12.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r12.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card is-dupe">
-              <img src="assets/reviews/r10.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r10.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card is-dupe">
-              <img src="assets/reviews/r11.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r11.jpg
-              </figcaption>
-            </figure>
-            <figure class="review-card is-dupe">
-              <img src="assets/reviews/r12.jpg" alt="Customer review screenshot" loading="lazy" onerror="this.parentNode.classList.add('is-empty');this.remove();">
-              <figcaption>
-                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Screenshot slot<br>assets/reviews/r12.jpg
-              </figcaption>
-            </figure>
-          </div>
-        </div>
+        <div class="reviews-wall" id="reviewsWall"></div>
       </div>
     </section>
 
@@ -1284,6 +1127,61 @@ window.onload = function(){
   initThreeScene();
   updateScrollPoses();
 };
+
+/* ================================================================
+   REVIEW WALL
+   Drop screenshots in assets/reviews/ using these names. A slot with no
+   file shows a labelled placeholder instead of a broken image.
+   Desktop builds tilted columns scrolling vertically; phones build
+   tilted rows scrolling sideways. Each strip is rendered twice so the
+   marquee loops seamlessly.
+================================================================ */
+const REVIEW_IMAGES = ['r1.jpg','r2.jpg','r3.jpg','r4.jpg','r5.jpg','r6.jpg',
+                       'r7.jpg','r8.jpg','r9.jpg','r10.jpg','r11.jpg','r12.jpg'];
+
+const reviewsWall = document.getElementById('reviewsWall');
+const reviewsPhone = window.matchMedia('(max-width:900px)');
+
+function buildReviewCard(file){
+  const fig = document.createElement('figure');
+  fig.className = 'review-card';
+  const img = document.createElement('img');
+  img.src = 'assets/reviews/' + file;
+  img.alt = 'Customer review screenshot';
+  img.loading = 'lazy';
+  img.addEventListener('error', ()=>{ fig.classList.add('is-empty'); img.remove(); });
+  const cap = document.createElement('figcaption');
+  cap.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>';
+  cap.appendChild(document.createTextNode('Screenshot slot'));
+  cap.appendChild(document.createElement('br'));
+  cap.appendChild(document.createTextNode('assets/reviews/' + file));
+  fig.appendChild(img);
+  fig.appendChild(cap);
+  return fig;
+}
+
+function buildReviewWall(){
+  const phone = reviewsPhone.matches;
+  const stripCount = phone ? 2 : 4;
+  const perStrip = Math.ceil(REVIEW_IMAGES.length / stripCount);
+  reviewsWall.textContent = '';
+
+  for (let i=0;i<stripCount;i++){
+    const strip = document.createElement('div');
+    strip.className = phone
+      ? 'reviews-row' + (i % 2 ? ' reverse' : '')
+      : 'reviews-col ' + (i % 2 ? 'scroll-down' : 'scroll-up');
+    if (!phone) strip.style.animationDuration = (44 + i*4) + 's';
+
+    const slice = REVIEW_IMAGES.slice(i*perStrip, (i+1)*perStrip);
+    // rendered twice: the second pass is what the loop scrolls into
+    slice.concat(slice).forEach(file=> strip.appendChild(buildReviewCard(file)));
+    reviewsWall.appendChild(strip);
+  }
+}
+
+buildReviewWall();
+reviewsPhone.addEventListener('change', buildReviewWall);
 
 /* ================================================================
    ORDER BUTTON
