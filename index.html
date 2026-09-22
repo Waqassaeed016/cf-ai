@@ -1,1315 +1,1147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Theaibot.io - 3D Scroll Experience</title>
-    <!-- Google Fonts: Bebas Neue & Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <!-- Ultra-light Three.js CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-    <style>
-        :root {
-            --brand-green: #22c55e;
-            --brand-green-light: #4ade80;
-            --brand-green-dark: #16a34a;
-            --brand-green-glow: rgba(34, 197, 94, 0.4);
-            --bg-black: #000000;
-            --surface-card: rgba(13, 18, 26, 0.78);
-            --border-glow: rgba(34, 197, 94, 0.35);
-            --text-white: #ffffff;
-            --text-muted: #94a3b8;
-            --accent-gold: #f59e0b;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            background-color: var(--bg-black);
-            font-family: 'Inter', sans-serif;
-            color: var(--text-white);
-            overflow-x: hidden;
-            line-height: 1.6;
-        }
-
-        /* Fixed full-screen 3D canvas stage */
-        #webgl-stage-fixed {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 1;
-            pointer-events: none; /* Allows scrolling anywhere on screen */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #webglCanvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        /* Cyber grid backdrop behind 3D */
-        .ambient-grid {
-            position: fixed;
-            inset: 0;
-            background-image: 
-                radial-gradient(circle at 50% 30%, rgba(34, 197, 94, 0.14) 0%, rgba(0, 0, 0, 0.95) 70%),
-                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-            background-size: 100% 100%, 40px 40px, 40px 40px;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        /* Floating interactive hint */
-        .scroll-down-tracker {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            background: rgba(10, 15, 22, 0.85);
-            border: 1px solid rgba(34, 197, 94, 0.35);
-            border-radius: 50px;
-            padding: 8px 18px;
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: #cbd5e1;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
-            pointer-events: none;
-            transition: opacity 0.4s ease;
-        }
-
-        .scroll-indicator-wheel {
-            width: 5px;
-            height: 5px;
-            background-color: var(--brand-green-light);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--brand-green);
-            animation: scrollBlink 1.4s infinite;
-        }
-
-        @keyframes scrollBlink {
-            0%, 100% { transform: translateY(-3px); opacity: 0.3; }
-            50% { transform: translateY(3px); opacity: 1; }
-        }
-
-        .scroll-content-wrap {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-        }
-
-        .scrolly-section {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            padding: 90px 24px;
-            position: relative;
-        }
-
-        .content-container {
-            max-width: 1160px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        /* Grid alignments for left & right text placement */
-        .align-center {
-            text-align: center;
-            max-width: 820px;
-            margin: 0 auto;
-        }
-
-        .align-left-box {
-            max-width: 520px;
-            margin-right: auto;
-        }
-
-        .align-right-box {
-            max-width: 520px;
-            margin-left: auto;
-        }
-
-        /* Glassmorphic storytelling narrative card */
-        .story-glass-card {
-            background: var(--surface-card);
-            border: 1px solid var(--border-glow);
-            border-radius: 20px;
-            padding: 36px 32px;
-            backdrop-filter: blur(14px);
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(34, 197, 94, 0.12);
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-
-        .story-glass-card::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--brand-green-light), transparent);
-        }
-
-        .badge-capsule {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(34, 197, 94, 0.12);
-            border: 1px solid rgba(34, 197, 94, 0.4);
-            color: var(--brand-green-light);
-            font-size: 12px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            padding: 7px 16px;
-            border-radius: 6px;
-            margin-bottom: 18px;
-        }
-
-        .badge-capsule .dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: var(--brand-green);
-            box-shadow: 0 0 8px var(--brand-green);
-            animation: pulseGlow 1.5s infinite;
-        }
-
-        @keyframes pulseGlow {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.6); opacity: 0.5; }
-        }
-
-        .hero-tall-title {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 82px;
-            line-height: 0.94;
-            color: #ffffff;
-            margin-bottom: 20px;
-            letter-spacing: 1.2px;
-            text-shadow: 0 10px 30px rgba(0,0,0,0.9);
-        }
-
-        .section-tall-title {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 56px;
-            line-height: 0.98;
-            color: #ffffff;
-            margin-bottom: 16px;
-            letter-spacing: 0.8px;
-        }
-
-        .glow-green-txt {
-            color: var(--brand-green-light);
-        }
-
-        @keyframes shineGradient {
-            to { background-position: 200% center; }
-        }
-
-        .narrative-p {
-            font-size: 16px;
-            color: #cbd5e1;
-            line-height: 1.65;
-            margin-bottom: 24px;
-        }
-
-        .narrative-p strong {
-            color: #ffffff;
-            border-bottom: 1px solid var(--brand-green);
-        }
-
-        /* Features Bullet List */
-        .feature-points-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .feature-points-list li {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            font-size: 14.5px;
-            color: #e2e8f0;
-        }
-
-        .feature-points-list svg {
-            width: 19px;
-            height: 19px;
-            fill: var(--brand-green);
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-
-        .btn-cta-emerald {
-            display: inline-flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            padding: 18px 24px;
-            background: var(--brand-green);
-            color: #04120d;
-            border-radius: 12px;
-            border: none;
-            text-decoration: none;
-            cursor: pointer;
-            box-shadow: 0 12px 35px rgba(34, 197, 94, 0.35);
-            transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
-        }
-
-        @keyframes shimmerEffect {
-            to { background-position: 200% center; }
-        }
-
-        .btn-cta-emerald:hover {
-            transform: translateY(-3px);
-            background: var(--brand-green-light);
-            box-shadow: 0 18px 50px rgba(34, 197, 94, 0.55);
-        }
-
-        .btn-text-main {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 28px;
-            letter-spacing: 1px;
-            line-height: 1;
-            margin-bottom: 3px;
-        }
-
-        .btn-text-sub {
-            font-size: 12.5px;
-            font-weight: 700;
-            opacity: 0.95;
-            letter-spacing: 0.4px;
-        }
-
-        /* Final Checkout Form Card */
-        .order-form-box {
-            background: rgba(10, 14, 21, 0.9);
-            border: 1px solid var(--border-glow);
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 600px;
-            margin: 0 auto;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.95), 0 0 40px rgba(34, 197, 94, 0.25);
-            text-align: center;
-        }
-
-        .order-input {
-            width: 100%;
-            background: rgba(4, 7, 12, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: #ffffff;
-            padding: 14px 16px;
-            border-radius: 8px;
-            font-size: 14.5px;
-            margin-bottom: 14px;
-            outline: none;
-            font-family: 'Inter', sans-serif;
-            transition: border-color 0.2s;
-        }
-
-        .order-input:focus {
-            border-color: var(--brand-green);
-        }
-
-        /* 3 Pillars Highlight Bar */
-        .pillars-badge-row {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .pillar-col {
-            flex: 1;
-            background: rgba(34, 197, 94, 0.06);
-            border: 1px solid rgba(34, 197, 94, 0.2);
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .pillar-col .emoji {
-            font-size: 20px;
-            margin-bottom: 4px;
-            display: block;
-        }
-
-        .pillar-col .title {
-            font-size: 11px;
-            font-weight: 800;
-            color: #ffffff;
-            text-transform: uppercase;
-        }
-
-        /* Social proof avatars */
-        .proof-avatars {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 18px;
-        }
-
-        .proof-avatars img {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            border: 2.5px solid #05070a;
-            margin-left: -12px;
-            object-fit: cover;
-        }
-
-        .proof-avatars img:first-child {
-            margin-left: 0;
-        }
-
-        /* Diagonal marquee strips (between hero and NFC section) */
-        .marquee-strip-container {
-            position: relative;
-            width: 100%;
-            height: 200px;
-            /* transparent so the same ambient grid shows through - no seam with the sections above/below */
-            background: transparent;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2;
-        }
-
-        .marquee-strip {
-            position: absolute;
-            width: 120vw;
-            left: -10vw;
-            display: flex;
-            overflow: hidden;
-            white-space: nowrap;
-            padding: 12px 0;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.6);
-            font-family: 'Inter', sans-serif;
-            font-size: 13px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
-
-        .strip-dark {
-            background-color: #0d1219;
-            color: #94a3b8;
-            transform: translateY(-32px) rotate(2deg);
-            z-index: 1;
-            border-top: 1px solid rgba(34, 197, 94, 0.15);
-            border-bottom: 1px solid rgba(34, 197, 94, 0.15);
-        }
-
-        .strip-green {
-            background: var(--brand-green);
-            color: #04120d;
-            transform: translateY(28px) rotate(-1.6deg);
-            z-index: 2;
-        }
-
-        /* Thin 4-color accent line echoing the physical card's NFC stripe - used sparingly as a section divider */
-        .brand-stripe-divider {
-            height: 4px;
-            width: 100%;
-            background: linear-gradient(90deg, #2563eb, #ef4444, #eab308, #22c55e);
-            opacity: 0.55;
-        }
-
-        .marquee-content {
-            display: flex;
-            animation: scrollStrip 25s linear infinite;
-        }
-
-        .strip-dark .marquee-content {
-            animation-direction: reverse;
-            animation-duration: 30s;
-        }
-
-        .marquee-item {
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-        }
-
-        .marquee-separator {
-            margin: 0 20px;
-            opacity: 0.5;
-        }
-
-        .strip-dark .highlight { color: var(--brand-green-light); }
-        .strip-green .highlight { color: #04120d; text-decoration: underline; }
-
-        @keyframes scrollStrip {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-
-        @media (max-width: 600px) {
-            .marquee-strip-container { height: 150px; margin-top: 10px; }
-            .marquee-strip { font-size: 10px; padding: 9px 0; letter-spacing: 1px; }
-            .strip-dark { transform: translateY(-24px) rotate(1.5deg); }
-            .strip-green { transform: translateY(20px) rotate(-1.2deg); }
-            .marquee-item { padding: 0 12px; }
-            .marquee-separator { margin: 0 12px; font-size: 16px; }
-        }
-
-        /* Video section */
-        .video-section {
-            padding: 90px 24px;
-            position: relative;
-        }
-
-        .mkr-video-frame {
-            position: relative;
-            border-radius: 16px;
-            padding: 8px;
-            max-width: 900px;
-            margin: 0 auto;
-            background: var(--surface-card);
-            border: 1px solid var(--border-glow);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.85), 0 0 40px rgba(34, 197, 94, 0.15);
-            backdrop-filter: blur(10px);
-        }
-
-        .mkr-video-inner {
-            border-radius: 10px;
-            overflow: hidden;
-            background: #000;
-            aspect-ratio: 16/9;
-            position: relative;
-        }
-
-        .mkr-video-inner iframe,
-        .mkr-video-inner > div {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        .unmute-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 10;
-            backdrop-filter: blur(3px);
-            transition: background 0.3s ease;
-        }
-
-        .unmute-overlay:hover { background: rgba(0,0,0,0.1); }
-
-        .unmute-btn {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(0,0,0,0.9);
-            border: 2px solid var(--brand-green);
-            padding: 14px 28px;
-            border-radius: 50px;
-            color: #fff;
-            font-family: 'Inter', sans-serif;
-            font-weight: 800;
-            font-size: 16px;
-            text-transform: uppercase;
-            box-shadow: 0 0 25px rgba(34, 197, 94, 0.5);
-            animation: pulseUnmute 2s infinite;
-        }
-
-        @keyframes pulseUnmute {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); }
-            50% { transform: scale(1.05); box-shadow: 0 0 35px rgba(34, 197, 94, 0.8); }
-        }
-
-        @media (max-width: 600px) {
-            .video-section { padding: 50px 16px; }
-            .unmute-btn { padding: 10px 20px; font-size: 13px; }
-        }
-
-        /* Review / testimonial vertical scroll grid */
-        .reviews-wrapper {
-            padding: 90px 0;
-            background-color: var(--bg-black);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .reviews-wrapper::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background-image:
-                linear-gradient(rgba(34, 197, 94, 0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(34, 197, 94, 0.04) 1px, transparent 1px);
-            background-size: 60px 60px;
-            pointer-events: none;
-        }
-
-        .reviews-header {
-            text-align: center;
-            margin-bottom: 50px;
-            position: relative;
-            z-index: 2;
-            padding: 0 24px;
-        }
-
-        .reviews-grid-frame {
-            max-width: 1300px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 2;
-            height: 620px;
-            overflow: hidden;
-            mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
-            -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
-        }
-
-        .reviews-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            height: 100%;
-            padding: 0 20px;
-        }
-
-        .reviews-col {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            height: max-content;
-        }
-
-        .reviews-col.scroll-up { animation: slideUp 40s linear infinite; }
-        .reviews-col.scroll-down { animation: slideDown 45s linear infinite; }
-        .reviews-col:hover { animation-play-state: paused; }
-
-        @keyframes slideUp {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-50%); }
-        }
-        @keyframes slideDown {
-            0% { transform: translateY(-50%); }
-            100% { transform: translateY(0); }
-        }
-
-        .review-card-placeholder {
-            width: 100%;
-            aspect-ratio: 3 / 4;
-            border-radius: 14px;
-            background: var(--surface-card);
-            border: 1.5px dashed rgba(34, 197, 94, 0.35);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            color: #64748b;
-            text-align: center;
-            padding: 16px;
-        }
-
-        .review-card-placeholder svg {
-            width: 30px;
-            height: 30px;
-            fill: var(--brand-green);
-            opacity: 0.7;
-        }
-
-        .review-card-placeholder span {
-            font-size: 12.5px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        @media (max-width: 900px) {
-            .reviews-grid { grid-template-columns: repeat(2, 1fr); }
-            .reviews-col.col-3 { display: none; }
-            .reviews-grid-frame { height: 480px; }
-        }
-
-        @media (max-width: 900px) {
-            .hero-tall-title { font-size: 52px; }
-            .section-tall-title { font-size: 42px; }
-            .scrolly-section { min-height: 85vh; padding: 60px 18px; }
-            .align-left-box, .align-right-box { max-width: 100%; }
-            .story-glass-card { padding: 26px 20px; }
-            .pillars-badge-row { flex-direction: column; }
-        }
-
-        @media (max-width: 480px) {
-            .hero-tall-title { font-size: 42px; }
-            .section-tall-title { font-size: 36px; }
-            .btn-text-main { font-size: 22px; }
-            .order-form-box { padding: 24px 16px; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marketingkr — Smart NFC Card. Everything Is Just 1 Tap Away.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<style>
+:root{
+  --bg-0:#080808;
+  --bg-1:#101010;
+  --surface:#151515;
+  --text:#ffffff;
+  --text-muted:#a3a3a3;
+  --border:rgba(255,255,255,0.12);
+  --grid:rgba(255,255,255,0.06);
+  --blue:#4285F4;
+  --red:#EA4335;
+  --yellow:#FBBC05;
+  --green:#34A853;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg-0);
+  font-family:'Inter',sans-serif;
+  color:var(--text);
+  overflow-x:hidden;
+  line-height:1.6;
+}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+  *{animation-duration:0.001ms !important;animation-iteration-count:1 !important;transition-duration:0.001ms !important;}
+}
+
+/* ---------- Background grid ---------- */
+.bg-grid{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background-color:var(--bg-0);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:44px 44px;
+}
+.bg-grid::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(ellipse 90% 60% at 50% 0%, rgba(255,255,255,0.05), transparent 60%);
+}
+@media (max-width:600px){
+  .bg-grid{background-size:30px 30px;}
+}
+
+/* ---------- fixed 3D stage ---------- */
+#webgl-stage-fixed{
+  position:fixed;
+  top:0;left:0;
+  width:100vw;height:100vh;
+  z-index:1;
+  pointer-events:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:opacity .4s ease;
+}
+#webglCanvas{width:100%;height:100%;display:block;}
+
+/* ---------- scroll hint ---------- */
+.scroll-down-tracker{
+  position:fixed;
+  bottom:22px;left:50%;
+  transform:translateX(-50%);
+  z-index:10;
+  background:rgba(10,10,10,0.85);
+  border:1px solid var(--border);
+  border-radius:50px;
+  padding:8px 18px;
+  display:flex;align-items:center;gap:9px;
+  font-size:11.5px;font-weight:700;letter-spacing:0.6px;
+  color:var(--text-muted);
+  backdrop-filter:blur(10px);
+  pointer-events:none;
+  transition:opacity .4s ease;
+}
+.scroll-indicator-wheel{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--text);
+  animation:scrollBlink 1.4s infinite;
+}
+@keyframes scrollBlink{0%,100%{transform:translateY(-3px);opacity:.3;}50%{transform:translateY(3px);opacity:1;}}
+
+.scroll-content-wrap{position:relative;z-index:2;width:100%;}
+
+/* ---------- layout helpers ---------- */
+.scrolly-section{min-height:100vh;display:flex;align-items:center;padding:90px 24px;position:relative;}
+.content-container{max-width:1160px;margin:0 auto;width:100%;}
+.align-center{text-align:center;max-width:820px;margin:0 auto;}
+.align-left-box{max-width:520px;margin-right:auto;}
+.align-right-box{max-width:520px;margin-left:auto;}
+
+/* ---------- badge / labels ---------- */
+.badge-capsule{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--text-muted);
+  font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.6px;
+  padding:7px 16px;border-radius:6px;margin-bottom:18px;
+}
+.badge-capsule .dot{width:6px;height:6px;border-radius:50%;background:var(--blue);animation:pulseGlow 1.5s infinite;}
+@keyframes pulseGlow{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.6);opacity:.5;}}
+
+/* accent divider echoing the physical card stripe */
+.brand-stripe-divider{
+  height:3px;width:100%;
+  background:linear-gradient(90deg,var(--blue),var(--red),var(--yellow),var(--green));
+  opacity:.6;
+}
+
+/* ---------- typography ---------- */
+.hero-tall-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:76px;line-height:0.96;color:var(--text);
+  margin-bottom:20px;letter-spacing:1px;
+}
+.section-tall-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:52px;line-height:0.98;color:var(--text);
+  margin-bottom:16px;letter-spacing:0.6px;
+}
+.accent-blue{color:var(--blue);}
+.accent-red{color:var(--red);}
+.accent-yellow{color:var(--yellow);}
+.accent-green{color:var(--green);}
+.narrative-p{font-size:16px;color:var(--text-muted);line-height:1.65;margin-bottom:22px;}
+.narrative-p strong{color:var(--text);}
+
+.feature-points-list{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:8px;}
+.feature-points-list li{display:flex;align-items:flex-start;gap:12px;font-size:14.5px;color:#e5e5e5;}
+.feature-points-list svg{width:18px;height:18px;fill:var(--green);flex-shrink:0;margin-top:2px;}
+
+/* ---------- glass narrative card ---------- */
+.story-glass-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:34px 30px;
+  position:relative;
+  overflow:hidden;
+}
+.story-glass-card::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--blue),var(--red),var(--yellow),var(--green));
+  opacity:.8;
+}
+
+/* ---------- buttons ---------- */
+.btn-row{display:flex;gap:14px;flex-wrap:wrap;}
+.btn-primary,.btn-secondary{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:15px 26px;border-radius:10px;font-weight:700;font-size:14.5px;
+  letter-spacing:.3px;text-decoration:none;cursor:pointer;border:1px solid transparent;
+  transition:transform .2s ease, background .2s ease, border-color .2s ease;
+  font-family:'Inter',sans-serif;
+}
+.btn-primary{background:var(--text);color:#0a0a0a;}
+.btn-primary:hover{transform:translateY(-2px);}
+.btn-secondary{background:transparent;color:var(--text);border-color:var(--border);}
+.btn-secondary:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.35);}
+
+.btn-cta-main{
+  display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
+  width:100%;padding:18px 24px;background:var(--text);color:#0a0a0a;
+  border-radius:12px;border:none;cursor:pointer;
+  transition:transform .2s ease;
+}
+.btn-cta-main:hover{transform:translateY(-3px);}
+.btn-text-main{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;line-height:1;margin-bottom:3px;}
+.btn-text-sub{font-size:12px;font-weight:700;opacity:.85;letter-spacing:.3px;}
+
+/* ---------- eyebrow label ---------- */
+.eyebrow{
+  display:inline-block;font-size:12px;font-weight:800;letter-spacing:2.5px;
+  color:var(--text-muted);text-transform:uppercase;margin-bottom:18px;
+}
+.eyebrow::before{content:"";display:inline-block;width:16px;height:2px;background:var(--blue);margin-right:8px;vertical-align:middle;}
+
+/* Reveal section: copy pinned to the top so the flipping card owns the
+   middle of the viewport without ever crossing the text. */
+#section-reveal{align-items:flex-start;padding-top:10vh;min-height:170vh;}
+#section-reveal .section-tall-title{font-size:44px;}
+@media (max-width:600px){#section-reveal{padding-top:8vh;} #section-reveal .section-tall-title{font-size:32px;}}
+
+/* ---------- Hero card slot (keeps 3D card out from under headline) ---------- */
+.hero-card-slot{height:46vh;min-height:280px;}
+@media (max-width:768px){.hero-card-slot{height:38vh;min-height:220px;}}
+
+/* ---------- marquee ---------- */
+.marquee-strip-container{
+  position:relative;width:100%;height:190px;
+  overflow:hidden;display:flex;align-items:center;justify-content:center;z-index:2;
+}
+.marquee-strip{
+  position:absolute;width:120vw;left:-10vw;display:flex;overflow:hidden;white-space:nowrap;
+  padding:14px 0;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1.6px;
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+}
+.strip-dark{background:var(--bg-1);color:var(--text-muted);transform:translateY(-30px) rotate(2deg);z-index:1;}
+.strip-light{background:var(--text);color:#0a0a0a;transform:translateY(26px) rotate(-1.6deg);z-index:2;}
+.marquee-content{display:flex;animation:scrollStrip 26s linear infinite;}
+.strip-dark .marquee-content{animation-direction:reverse;animation-duration:32s;}
+.marquee-item{display:flex;align-items:center;padding:0 20px;}
+.marquee-separator{margin:0 20px;opacity:.5;}
+.strip-dark .hl-blue{color:var(--blue);} .strip-dark .hl-red{color:var(--red);}
+.strip-dark .hl-yellow{color:var(--yellow);} .strip-dark .hl-green{color:var(--green);}
+.strip-light .hl-blue{color:var(--blue);} .strip-light .hl-red{color:var(--red);}
+.strip-light .hl-yellow,.strip-light .hl-green{color:#0a0a0a;text-decoration:underline;}
+@keyframes scrollStrip{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+@media (max-width:600px){
+  .marquee-strip-container{height:140px;}
+  .marquee-strip{font-size:10px;padding:10px 0;letter-spacing:1px;}
+  .strip-dark{transform:translateY(-22px) rotate(1.5deg);}
+  .strip-light{transform:translateY(18px) rotate(-1.2deg);}
+  .marquee-item{padding:0 12px;}
+  .marquee-separator{margin:0 12px;}
+}
+
+/* ---------- Interactive showcase ---------- */
+.showcase-section{min-height:100vh;padding:100px 24px 60px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;}
+.showcase-head{max-width:640px;margin:0 auto 8px;}
+.showcase-stage{
+  position:relative;width:100%;max-width:760px;height:78vh;min-height:520px;margin:10px auto 0;
+}
+.side-toggle{display:flex;gap:10px;justify-content:center;margin:4px 0 8px;position:relative;z-index:5;}
+.side-btn{
+  min-height:46px;padding:12px 30px;border-radius:9px;font-weight:800;font-size:13px;letter-spacing:1px;
+  text-transform:uppercase;cursor:pointer;border:1px solid var(--border);background:var(--bg-1);color:var(--text);
+  transition:background .2s ease,color .2s ease,border-color .2s ease;
+}
+.side-btn.active{background:var(--text);color:#0a0a0a;border-color:var(--text);}
+.side-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+
+/* annotation overlay — fixed to the viewport so callouts track the card
+   wherever the shared 3D instance is rendered */
+#annotationLayer{
+  position:fixed;inset:0;z-index:5;pointer-events:none;overflow:hidden;
+}
+.annotation{
+  position:absolute;top:0;left:0;
+  display:flex;align-items:center;gap:8px;
+  opacity:0;pointer-events:none;
+  transition:opacity .35s ease;
+  white-space:nowrap;
+  /* label sits to the RIGHT of the marker; marker lands on the feature */
+  transform:translate(-5px,-50%);
+}
+.annotation.anchor-left{
+  /* label sits to the LEFT of the marker */
+  transform:translate(calc(-100% + 5px),-50%);
+}
+.annotation.anchor-left .label{order:1;}
+.annotation.anchor-left .leader{order:2;}
+.annotation.anchor-left .marker{order:3;}
+.annotation.show{opacity:1;}
+.annotation .marker{width:9px;height:9px;border-radius:50%;background:var(--text);box-shadow:0 0 0 4px rgba(255,255,255,0.12);flex-shrink:0;}
+.annotation .leader{width:46px;height:1px;background:rgba(255,255,255,0.45);flex-shrink:0;}
+.annotation .label{
+  font-size:12px;font-weight:700;letter-spacing:.3px;color:var(--text);
+  background:rgba(10,10,10,0.86);border:1px solid var(--border);
+  padding:6px 11px;border-radius:7px;
+}
+.annotation.emphasize .marker{background:var(--green);box-shadow:0 0 0 5px rgba(52,168,83,0.22);}
+.annotation.emphasize .label{border-color:var(--green);color:#fff;}
+
+@media (max-width:820px){
+  .showcase-stage{height:64vh;min-height:430px;}
+  .annotation .label{font-size:11px;padding:5px 9px;}
+  .annotation .leader{width:22px;}
+}
+/* On small phones the callouts are replaced by the readable feature list
+   under the card, so nothing overlaps the artwork. */
+@media (max-width:560px){
+  .annotation{display:none;}
+}
+
+.mobile-feature-strip{display:none;max-width:520px;margin:18px auto 0;padding:0 6px;}
+.mobile-feature-strip ul{list-style:none;display:flex;flex-direction:column;gap:10px;}
+.mobile-feature-strip li{
+  display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text-muted);
+  background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 14px;
+}
+.mobile-feature-strip li .dotmark{width:7px;height:7px;border-radius:50%;background:var(--blue);flex-shrink:0;}
+@media (max-width:560px){
+  .mobile-feature-strip{display:block;}
+}
+
+/* powered-by signature */
+.powered-by{text-align:center;margin-top:34px;}
+.powered-by .pb-label{font-size:10.5px;letter-spacing:2.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;}
+.powered-by .pb-name{font-size:19px;font-weight:800;color:var(--text);letter-spacing:.3px;}
+.powered-by .pb-line{
+  width:64px;height:2px;margin:10px auto 0;
+  background:linear-gradient(90deg,var(--blue),var(--red),var(--yellow),var(--green));
+}
+
+/* ---------- storytelling sections ---------- */
+.story-points{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+.story-points li{
+  font-size:12.5px;font-weight:700;color:var(--text-muted);
+  background:var(--bg-1);border:1px solid var(--border);border-radius:20px;padding:7px 13px;
+}
+.mobile-card-anchor{width:100%;display:flex;justify-content:center;}
+.mobile-card-spacer{height:44vh;min-height:260px;}
+@media (max-width:768px){.mobile-card-spacer{height:33vh;min-height:200px;}}
+
+/* ---------- video section ---------- */
+.video-section{padding:90px 24px;position:relative;}
+.mkr-video-frame{
+  position:relative;border-radius:16px;padding:8px;max-width:900px;margin:0 auto;
+  background:var(--surface);border:1px solid var(--border);
+}
+.mkr-video-inner{border-radius:10px;overflow:hidden;background:#000;aspect-ratio:16/9;position:relative;}
+.mkr-video-inner iframe,.mkr-video-inner>div{width:100%;height:100%;display:block;}
+.unmute-overlay{
+  position:absolute;inset:0;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:10;backdrop-filter:blur(3px);transition:background .3s ease;
+}
+.unmute-overlay:hover{background:rgba(0,0,0,0.12);}
+.unmute-btn{
+  display:flex;align-items:center;gap:10px;background:rgba(0,0,0,0.9);border:2px solid var(--text);
+  padding:13px 26px;border-radius:50px;color:#fff;font-weight:800;font-size:14.5px;text-transform:uppercase;
+}
+@media (max-width:600px){.video-section{padding:50px 16px;}.unmute-btn{padding:10px 20px;font-size:12.5px;}}
+
+/* ---------- reviews ---------- */
+.reviews-wrapper{padding:90px 0;position:relative;overflow:hidden;}
+.reviews-header{text-align:center;margin-bottom:46px;position:relative;z-index:2;padding:0 24px;}
+.reviews-grid-frame{
+  max-width:1300px;margin:0 auto;position:relative;z-index:2;height:600px;overflow:hidden;
+  mask-image:linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image:linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+}
+.reviews-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;height:100%;padding:0 20px;}
+.reviews-col{display:flex;flex-direction:column;gap:18px;height:max-content;}
+.reviews-col.scroll-up{animation:slideUp 40s linear infinite;}
+.reviews-col.scroll-down{animation:slideDown 45s linear infinite;}
+.reviews-col:hover{animation-play-state:paused;}
+@keyframes slideUp{0%{transform:translateY(0);}100%{transform:translateY(-50%);}}
+@keyframes slideDown{0%{transform:translateY(-50%);}100%{transform:translateY(0);}}
+.review-card-placeholder{
+  width:100%;aspect-ratio:3/4;border-radius:14px;background:var(--surface);
+  border:1.5px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;color:#666;text-align:center;padding:16px;
+}
+.review-card-placeholder svg{width:28px;height:28px;fill:var(--yellow);opacity:.8;}
+.review-card-placeholder span{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+@media (max-width:900px){
+  .reviews-grid{grid-template-columns:repeat(2,1fr);}
+  .reviews-col.col-3{display:none;}
+  .reviews-grid-frame{height:470px;}
+}
+
+/* ---------- order form ---------- */
+.order-form-box{
+  background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:40px;
+  max-width:580px;margin:0 auto;text-align:center;
+}
+.order-input{
+  width:100%;background:var(--bg-1);border:1px solid var(--border);color:var(--text);padding:14px 16px;
+  border-radius:8px;font-size:14.5px;margin-bottom:14px;outline:none;font-family:'Inter',sans-serif;
+  transition:border-color .2s;
+}
+.order-input:focus{border-color:var(--blue);}
+.pillars-badge-row{display:flex;gap:12px;margin-top:20px;}
+.pillar-col{flex:1;background:var(--bg-1);border:1px solid var(--border);padding:12px;border-radius:8px;text-align:center;}
+.pillar-col .emoji{font-size:19px;margin-bottom:4px;display:block;}
+.pillar-col .title{font-size:10.5px;font-weight:800;color:var(--text);text-transform:uppercase;}
+.demo-note{font-size:11.5px;color:var(--text-muted);margin-top:14px;line-height:1.5;}
+
+@media (max-width:900px){
+  .hero-tall-title{font-size:48px;}
+  .section-tall-title{font-size:38px;}
+  .scrolly-section{min-height:100vh;padding:40px 18px;}
+  .align-left-box,.align-right-box{max-width:100%;}
+  .story-glass-card{padding:24px 20px;}
+  .pillars-badge-row{flex-direction:column;}
+}
+@media (max-width:600px){
+  /* the hero card occupies the lower band on phones; the hint would sit on it */
+  .scroll-down-tracker{display:none;}
+}
+@media (max-width:480px){
+  .hero-tall-title{font-size:38px;}
+  .section-tall-title{font-size:32px;}
+  .btn-text-main{font-size:21px;}
+  .order-form-box{padding:24px 16px;}
+}
+
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+</style>
 </head>
 <body>
 
-    <!-- Ambient Cyber Grid -->
-    <div class="ambient-grid"></div>
+<div class="bg-grid" aria-hidden="true"></div>
 
-    <!-- Fixed background 3D canvas stage that reacts smoothly to page scroll -->
-    <div id="webgl-stage-fixed">
-        <canvas id="webglCanvas"></canvas>
+<div id="annotationLayer" aria-hidden="true"></div>
+
+<div id="webgl-stage-fixed" aria-hidden="true">
+  <canvas id="webglCanvas"></canvas>
+</div>
+
+<div class="scroll-down-tracker" id="scrollTracker">
+  <span class="scroll-indicator-wheel"></span>
+  <span>SCROLL TO EXPLORE THE CARD</span>
+</div>
+
+<div class="scroll-content-wrap">
+
+  <!-- ================= HERO ================= -->
+  <section class="scrolly-section" id="section-hero">
+    <div class="content-container align-center">
+      <div class="eyebrow">THE SMARTER WAY TO CONNECT</div>
+      <h1 class="hero-tall-title">
+        EVERYTHING IS JUST<br>
+        <span class="accent-blue">1 TAP</span> AWAY.
+      </h1>
+      <p class="narrative-p" style="font-size:18px;max-width:640px;margin:0 auto 30px;">
+        Save your business straight to a customer's contacts, launch a restaurant loyalty program, and put every social link in one place — all from one smart card.
+      </p>
+      <div class="btn-row" style="justify-content:center;margin-bottom:10px;">
+        <a href="#section-showcase" class="btn-secondary" id="exploreCardBtn">Explore the Card</a>
+        <a href="#section-checkout" class="btn-primary">Get Your Smart Card</a>
+      </div>
+      <div class="hero-card-slot" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- ================= MARQUEE (no-card zone) ================= -->
+  <div class="no-card-zone" id="zone-marquee">
+    <div class="marquee-strip-container">
+      <div class="marquee-strip strip-dark">
+        <div class="marquee-content">
+          <div class="marquee-item"><span class="hl-blue">ONE TAP</span></div><div class="marquee-separator">•</div>
+          <div class="marquee-item">INSTANT CONNECTION</div><div class="marquee-separator">•</div>
+          <div class="marquee-item"><span class="hl-red">SMART BUSINESS CARD</span></div><div class="marquee-separator">•</div>
+          <div class="marquee-item">SAVE CONTACT</div><div class="marquee-separator">•</div>
+          <div class="marquee-item"><span class="hl-yellow">NO APP REQUIRED</span></div><div class="marquee-separator">•</div>
+          <div class="marquee-item"><span class="hl-blue">ONE TAP</span></div><div class="marquee-separator">•</div>
+          <div class="marquee-item">INSTANT CONNECTION</div><div class="marquee-separator">•</div>
+          <div class="marquee-item"><span class="hl-red">SMART BUSINESS CARD</span></div><div class="marquee-separator">•</div>
+          <div class="marquee-item">SAVE CONTACT</div><div class="marquee-separator">•</div>
+          <div class="marquee-item"><span class="hl-yellow">NO APP REQUIRED</span></div><div class="marquee-separator">•</div>
+        </div>
+      </div>
+      <div class="marquee-strip strip-light">
+        <div class="marquee-content">
+          <div class="marquee-item"><span class="hl-green">LOYALTY PROGRAM</span></div><div class="marquee-separator">•</div>
+          <div class="marquee-item">SOCIAL MEDIA</div><div class="marquee-separator">•</div>
+          <div class="marquee-item"><span class="hl-blue">WHATSAPP</span></div><div class="marquee-separator">•</div>
+          <div class="marquee-item">QR CODE</div><div class="marquee-separator">•</div>
+          <div class="marquee-item"><span class="hl-red">STAY CONNECTED</span></div><div class="marquee-separator">•</div>
+          <div class="marquee-item"><span class="hl-green">LOYALTY PROGRAM</span></div><div class="marquee-separator">•</div>
+          <div class="marquee-item">SOCIAL MEDIA</div><div class="marquee-separator">•</div>
+          <div class="marquee-item"><span class="hl-blue">WHATSAPP</span></div><div class="marquee-separator">•</div>
+          <div class="marquee-item">QR CODE</div><div class="marquee-separator">•</div>
+          <div class="marquee-item"><span class="hl-red">STAY CONNECTED</span></div><div class="marquee-separator">•</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="brand-stripe-divider"></div>
+
+  <!-- ================= 3D CARD REVEAL ================= -->
+  <section class="scrolly-section" id="section-reveal">
+    <div class="content-container align-center">
+      <div class="eyebrow">THE CARD</div>
+      <h2 class="section-tall-title">A Real Card.<br><span class="accent-blue">Reimagined.</span></h2>
+      <p class="narrative-p" style="max-width:520px;margin:0 auto;">
+        Keep scrolling — watch it turn in your hand.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================= INTERACTIVE SHOWCASE ================= -->
+  <section class="showcase-section" id="section-showcase">
+    <div class="showcase-head content-container align-center">
+      <div class="eyebrow">THE CENTERPIECE</div>
+      <h2 class="section-tall-title">1 Tap And<br><span class="accent-blue">Start Anything.</span></h2>
+      <p class="narrative-p" style="max-width:480px;margin:0 auto 6px;">
+        One smart card. Everything your business needs to stay connected.
+      </p>
     </div>
 
-    <!-- Floating Scroll Tracker -->
-    <div class="scroll-down-tracker" id="scrollTracker">
-        <span class="scroll-indicator-wheel"></span>
-        <span>SCROLL DOWN TO EXPLORE 3D CARD</span>
+    <div class="side-toggle" role="group" aria-label="Card side selector">
+      <button type="button" class="side-btn active" id="btnFront" aria-pressed="true">Front</button>
+      <button type="button" class="side-btn" id="btnBack" aria-pressed="false">Back</button>
     </div>
 
-    <div class="scroll-content-wrap">
+    <div class="showcase-stage" id="showcaseStage" aria-hidden="true"></div>
 
-        <!-- SECTION 1: HERO (Card in Center) -->
-        <section class="scrolly-section" id="section-hero">
-            <div class="content-container align-center">
-                <div class="badge-capsule">
-                    <span class="dot"></span>
-                    NEXT-GEN BUSINESS AUTOMATION
-                </div>
-                <h1 class="hero-tall-title">
-                    STOP LOSING CUSTOMERS AT THE COUNTER.<br>
-                    TURN EVERY TAP INTO <span class="glow-green-txt">LIFETIME SALES</span>.
-                </h1>
-                <p class="narrative-p" style="font-size: 19px; max-width: 700px; margin: 0 auto 30px;">
-                    Theaibot.io Smart NFC Card replaces old paper business cards with an automated walk-in growth machine. 
-                    <strong>Scroll down to see the real card automation in action.</strong>
-                </p>
+    <div class="mobile-feature-strip" id="mobileFeaturesFront">
+      <ul>
+        <li><span class="dotmark"></span>Instant NFC Connection</li>
+        <li><span class="dotmark"></span>Your Business Identity</li>
+        <li><span class="dotmark"></span>One Tap Access</li>
+        <li><span class="dotmark"></span>Smart Contact Sharing</li>
+        <li><span class="dotmark"></span>All Your Links, One Place</li>
+      </ul>
+    </div>
+    <div class="mobile-feature-strip" id="mobileFeaturesBack" style="display:none;">
+      <ul>
+        <li><span class="dotmark"></span>Scan The QR Code</li>
+        <li><span class="dotmark"></span>Instant Digital Access</li>
+        <li><span class="dotmark"></span>Your Business Information</li>
+        <li><span class="dotmark"></span>Stay Connected</li>
+        <li><span class="dotmark"></span>Powered by Smart Technology</li>
+      </ul>
+    </div>
+
+    <div class="powered-by">
+      <div class="pb-label">Powered by</div>
+      <div class="pb-name">Marketingkr</div>
+      <div class="pb-line"></div>
+    </div>
+  </section>
+
+  <!-- ================= SAVE CONTACT ================= -->
+  <section class="scrolly-section" id="section-save-contact">
+    <div class="content-container">
+      <div class="align-left-box">
+        <div class="story-glass-card">
+          <div class="badge-capsule"><span class="dot"></span>SAVE CONTACT</div>
+          <h2 class="section-tall-title">One Tap.<br><span class="accent-blue">Stay In Their Contacts.</span></h2>
+          <p class="narrative-p">
+            Make it easy for customers to save your business information directly to their phones.
+          </p>
+          <ul class="story-points">
+            <li>Quick Contact Access</li>
+            <li>Easy Save Contact Action</li>
+            <li>No Manual Number Typing</li>
+          </ul>
+        </div>
+      </div>
+      <div class="mobile-card-anchor"><div class="mobile-card-spacer"></div></div>
+    </div>
+  </section>
+
+  <!-- ================= LOYALTY ================= -->
+  <section class="scrolly-section" id="section-loyalty">
+    <div class="content-container">
+      <div class="mobile-card-anchor"><div class="mobile-card-spacer"></div></div>
+      <div class="align-right-box">
+        <div class="story-glass-card">
+          <div class="badge-capsule"><span class="dot"></span>LOYALTY PROGRAM</div>
+          <h2 class="section-tall-title">Turn First-Time Visitors<br><span class="accent-red">Into Regulars.</span></h2>
+          <p class="narrative-p">
+            Give restaurant customers a convenient way to access your loyalty program and stay connected with your business.
+          </p>
+          <ul class="story-points">
+            <li>Restaurant Loyalty Access</li>
+            <li>Encourage Repeat Visits</li>
+            <li>Build Customer Relationships</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SOCIAL LINKS ================= -->
+  <section class="scrolly-section" id="section-social">
+    <div class="content-container">
+      <div class="align-left-box">
+        <div class="story-glass-card">
+          <div class="badge-capsule"><span class="dot"></span>SOCIAL &amp; MESSAGING</div>
+          <h2 class="section-tall-title">Your Entire Digital World.<br><span class="accent-yellow">One Tap Away.</span></h2>
+          <p class="narrative-p">
+            Connect customers to your social profiles, WhatsApp, website, and other important links from one convenient destination.
+          </p>
+          <ul class="story-points">
+            <li>Instagram</li>
+            <li>Facebook</li>
+            <li>WhatsApp</li>
+            <li>Website</li>
+            <li>Other Platforms</li>
+          </ul>
+        </div>
+      </div>
+      <div class="mobile-card-anchor"><div class="mobile-card-spacer"></div></div>
+    </div>
+  </section>
+
+  <!-- ================= QR ================= -->
+  <section class="scrolly-section" id="section-qr">
+    <div class="content-container">
+      <div class="mobile-card-anchor"><div class="mobile-card-spacer"></div></div>
+      <div class="align-right-box">
+        <div class="story-glass-card">
+          <div class="badge-capsule"><span class="dot"></span>QR ALTERNATIVE</div>
+          <h2 class="section-tall-title">No NFC?<br><span class="accent-green">No Problem.</span></h2>
+          <p class="narrative-p">
+            Customers can scan the QR code on the back of the card to reach your digital destination.
+          </p>
+          <ul class="story-points">
+            <li>Scan To Connect</li>
+            <li>Easy Digital Access</li>
+            <li>Convenient QR Alternative</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= VIDEO + REVIEWS (no-card zone) ================= -->
+  <div class="no-card-zone" id="zone-media">
+
+    <section class="video-section">
+      <div class="content-container align-center">
+        <div class="badge-capsule"><span class="dot"></span>SEE IT IN ACTION</div>
+        <h2 class="section-tall-title" style="margin-bottom:24px;">Watch How The <span class="accent-blue">Tap Works</span></h2>
+        <div class="mkr-video-frame">
+          <div class="mkr-video-inner">
+            <div id="yt-player"></div>
+            <div class="unmute-overlay" id="unmuteBtn" onclick="unmuteVideo()">
+              <div class="unmute-btn">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                Click to Unmute
+              </div>
             </div>
-        </section>
+          </div>
+        </div>
+      </div>
+    </section>
 
-        <!-- No 3D card zone: video + strips + reviews (card is hidden here so it never overlaps this content) -->
-        <div id="noCardZone">
+    <div class="brand-stripe-divider"></div>
 
-        <!-- VIDEO SECTION -->
-        <section class="video-section">
-            <div class="content-container align-center">
-                <div class="badge-capsule">
-                    <span class="dot"></span>
-                    SEE IT IN ACTION
-                </div>
-                <h2 class="section-tall-title" style="margin-bottom: 24px;">
-                    WATCH HOW THE <span class="glow-green-txt">TAP WORKS</span>
-                </h2>
-                <div class="mkr-video-frame">
-                    <div class="mkr-video-inner">
-                        <div id="yt-player"></div>
-                        <div class="unmute-overlay" id="unmuteBtn" onclick="unmuteVideo()">
-                            <div class="unmute-btn">
-                                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-                                </svg>
-                                Click to Unmute
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+    <section class="reviews-wrapper">
+      <div class="reviews-header">
+        <div class="badge-capsule"><span class="dot"></span>REAL RESULTS</div>
+        <h2 class="section-tall-title">What Our <span class="accent-green">Customers Say</span></h2>
+        <p class="narrative-p" style="max-width:620px;margin:16px auto 0;">
+          Real customer screenshots will replace these placeholders soon.
+        </p>
+      </div>
+      <div class="reviews-grid-frame">
+        <div class="reviews-grid">
+          <div class="reviews-col scroll-up col-1">
+            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+          </div>
+          <div class="reviews-col scroll-down col-2">
+            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+          </div>
+          <div class="reviews-col scroll-up col-3" style="animation-duration:34s;">
+            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+            <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-        <div class="brand-stripe-divider"></div>
+  </div>
+  <!-- end no-card-zone media -->
 
-        <!-- MARQUEE STRIPS -->
-        <div class="marquee-strip-container">
-            <div class="marquee-strip strip-dark">
-                <div class="marquee-content">
-                    <div class="marquee-item"><span class="highlight">SMART NFC BUSINESS CARD</span></div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item">GROW YOUR BUSINESS EVERY DAY</div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item">NO APP REQUIRED</div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item">CASH ON DELIVERY <span class="highlight">ALL OVER PAKISTAN</span></div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item"><span class="highlight">SMART NFC BUSINESS CARD</span></div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item">GROW YOUR BUSINESS EVERY DAY</div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item">NO APP REQUIRED</div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item">CASH ON DELIVERY <span class="highlight">ALL OVER PAKISTAN</span></div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item"><span class="highlight">SMART NFC BUSINESS CARD</span></div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item">GROW YOUR BUSINESS EVERY DAY</div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item">NO APP REQUIRED</div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item">CASH ON DELIVERY <span class="highlight">ALL OVER PAKISTAN</span></div>
-                    <div class="marquee-separator">•</div>
-                </div>
-            </div>
-            <div class="marquee-strip strip-green">
-                <div class="marquee-content">
-                    <div class="marquee-item"><span class="highlight">ONE TAP AUTOMATION</span></div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item">TURN EVERY TAP INTO A SALE</div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item">TRUSTED BY 500+ BUSINESSES</div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item">WHATSAPP &amp; SOCIAL SYNC <span class="highlight">BUILT-IN</span></div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item"><span class="highlight">ONE TAP AUTOMATION</span></div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item">TURN EVERY TAP INTO A SALE</div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item">TRUSTED BY 500+ BUSINESSES</div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item">WHATSAPP &amp; SOCIAL SYNC <span class="highlight">BUILT-IN</span></div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item"><span class="highlight">ONE TAP AUTOMATION</span></div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item">TURN EVERY TAP INTO A SALE</div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item">TRUSTED BY 500+ BUSINESSES</div>
-                    <div class="marquee-separator">•</div>
-                    <div class="marquee-item">WHATSAPP &amp; SOCIAL SYNC <span class="highlight">BUILT-IN</span></div>
-                    <div class="marquee-separator">•</div>
-                </div>
-            </div>
+  <!-- ================= CHECKOUT ================= -->
+  <section class="scrolly-section" id="section-checkout">
+    <div class="content-container">
+      <div class="order-form-box">
+        <div class="badge-capsule"><span class="dot"></span>INTRODUCTORY PRICE</div>
+        <h2 class="section-tall-title" style="font-size:42px;margin-bottom:8px;">Get Your <span class="accent-blue">Smart NFC Card</span></h2>
+        <p style="color:var(--text-muted);font-size:14px;margin-bottom:22px;">
+          Pay Cash on Delivery • Free Delivery Anywhere in Pakistan
+        </p>
+
+        <form onsubmit="handleFormSubmit(event)">
+          <input type="text" class="order-input" id="custName" placeholder="Full Name / Apka Naam" required autocomplete="name">
+          <input type="tel" class="order-input" id="custPhone" placeholder="WhatsApp / Mobile Number" required autocomplete="tel">
+          <input type="text" class="order-input" id="custAddress" placeholder="Delivery Address & City (e.g. Lahore, Karachi, ISB)" required autocomplete="street-address">
+
+          <button type="submit" class="btn-cta-main" style="margin-top:6px;">
+            <span class="btn-text-main">ORDER NOW (RS. 1,999)</span>
+            <span class="btn-text-sub">Cash on Delivery • NFC + QR Card</span>
+          </button>
+        </form>
+
+        <div id="orderSuccessMsg" role="status" style="display:none;background:var(--bg-1);border:1px solid var(--green);color:var(--text);padding:14px;border-radius:8px;margin-top:18px;font-size:13.5px;font-weight:600;">
+          Shukriya! Aapka order request receive ho gaya hai. Dispatch details WhatsApp par receive hongi.
         </div>
 
-        <div class="brand-stripe-divider"></div>
+        <p class="demo-note">
+          This form is a UI demo of the ordering flow — connect a backend to process real orders and payments.
+        </p>
 
-        <!-- REVIEWS SECTION (placeholder cards - real screenshots to be added later) -->
-        <section class="reviews-wrapper">
-            <div class="reviews-header">
-                <div class="badge-capsule">
-                    <span class="dot"></span>
-                    REAL RESULTS
-                </div>
-                <h2 class="section-tall-title">
-                    WHAT OUR <span class="glow-green-txt">CUSTOMERS SAY</span>
-                </h2>
-                <p class="narrative-p" style="max-width: 650px; margin: 16px auto 0;">
-                    Real customer screenshots will replace these placeholders soon.
-                </p>
-            </div>
-
-            <div class="reviews-grid-frame">
-                <div class="reviews-grid">
-                    <div class="reviews-col scroll-up col-1">
-                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-                    </div>
-                    <div class="reviews-col scroll-down col-2">
-                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-                    </div>
-                    <div class="reviews-col scroll-up col-3" style="animation-duration: 34s;">
-                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-                        <div class="review-card-placeholder"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>Customer Review</span></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
+        <div class="pillars-badge-row">
+          <div class="pillar-col"><span class="emoji">👥</span><div class="title">Grow Your Business</div></div>
+          <div class="pillar-col"><span class="emoji">📇</span><div class="title">Save Contact In 1 Tap</div></div>
+          <div class="pillar-col"><span class="emoji">❤️</span><div class="title">Keep Customers Coming Back</div></div>
         </div>
-        <!-- end noCardZone -->
-
-        <!-- SECTION 2: 1-TAP NFC DIRECT CONNECT (Card Moves Right & Angles) -->
-        <section class="scrolly-section" id="section-nfc">
-            <div class="content-container">
-                <div class="align-left-box">
-                    <div class="story-glass-card">
-                        <div class="badge-capsule">
-                            <span class="dot"></span>
-                            HARDWARE & TECH
-                        </div>
-                        <h2 class="section-tall-title">
-                            1-TAP NFC SPEED.<br>
-                            <span class="glow-green-txt">ZERO APPS NEEDED.</span>
-                        </h2>
-                        <p class="narrative-p">
-                            Your customer just brings their iPhone or Android phone near the top <strong>NFC sensor</strong>, and your whole business opens up instantly on their screen. No typing numbers. No searching spellings.
-                        </p>
-                        <ul class="feature-points-list">
-                            <li>
-                                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                                <span>Works natively on 99% of modern smartphones</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                                <span>Takes only 0.2 seconds to initiate connection</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                                <span>Scratch-proof, waterproof matte industrial finish</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECTION 3: SOCIAL & WHATSAPP AUTOMATION (Card Moves Left & Tilts Toward Badges) -->
-        <section class="scrolly-section" id="section-socials">
-            <div class="content-container">
-                <div class="align-right-box">
-                    <div class="story-glass-card">
-                        <div class="badge-capsule">
-                            <span class="dot"></span>
-                            THEAIBOT RIBBON ENGINE
-                        </div>
-                        <h2 class="section-tall-title">
-                            AUTOMATE SOCIALS &<br>
-                            <span class="glow-green-txt">DIRECT WHATSAPP LEADS</span>
-                        </h2>
-                        <p class="narrative-p">
-                            Look at the signature emerald green ribbon. With one single tap, you instantly gain:
-                        </p>
-                        <ul class="feature-points-list">
-                            <li>
-                                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                                <span><strong>WhatsApp Direct Lead:</strong> Pre-filled greeting sent straight to your chat</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                                <span><strong>Instagram & TikTok Growth:</strong> Instant follow & viral engagement</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                                <span><strong>Shopify & Catalog Sync:</strong> Instant checkout directly from card</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECTION 4: FLIP TO BACK SIDE (Card Flips 180° to Show QR Code & 5 Stars) -->
-        <section class="scrolly-section" id="section-backside">
-            <div class="content-container">
-                <div class="align-left-box">
-                    <div class="story-glass-card">
-                        <div class="badge-capsule">
-                            <span class="dot"></span>
-                            BACK SIDE • DYNAMIC QR CODE
-                        </div>
-                        <h2 class="section-tall-title">
-                            5-STAR REVIEWS &<br>
-                            <span class="glow-green-txt">REPEAT CUSTOMERS</span>
-                        </h2>
-                        <p class="narrative-p">
-                            Older phones without NFC? Simply scan the high-contrast 4-color QR matrix. Designed specifically around our 3 growth pillars:
-                        </p>
-                        
-                        <!-- 3 Pillars from your card -->
-                        <div class="pillars-badge-row">
-                            <div class="pillar-col">
-                                <span class="emoji">👥</span>
-                                <div class="title">Grow Your Business</div>
-                            </div>
-                            <div class="pillar-col">
-                                <span class="emoji">🛡️</span>
-                                <div class="title">Turn Tap into Sale</div>
-                            </div>
-                            <div class="pillar-col">
-                                <span class="emoji">❤️</span>
-                                <div class="title">Keep Coming Back</div>
-                            </div>
-                        </div>
-
-                        <p class="narrative-p" style="margin-top: 18px; font-size: 13.5px; color: #94a3b8;">
-                            ★ Collect real 5-Star Google Reviews right when the customer is happily paying at your counter!
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECTION 5: FINAL ORDER & CHECKOUT (Card settles on top, Form on bottom) -->
-        <section class="scrolly-section" id="section-checkout">
-            <div class="content-container">
-                <div class="order-form-box">
-                    
-                    <div class="proof-avatars">
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Customer">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" alt="Customer">
-                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80" alt="Customer">
-                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80" alt="Customer">
-                    </div>
-
-                    <div class="badge-capsule">
-                        <span class="dot"></span>
-                        SPECIAL INTRODUCTORY PRICE
-                    </div>
-
-                    <h2 class="section-tall-title" style="font-size: 48px; margin-bottom: 8px;">
-                        CLAIM YOUR <span class="glow-green-txt">THEAIBOT CARD</span>
-                    </h2>
-                    <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 22px;">
-                        Pay Cash on Delivery • Free Delivery Anywhere in Pakistan
-                    </p>
-
-                    <!-- Fast COD Form -->
-                    <form onsubmit="handleFormSubmit(event)">
-                        <input type="text" class="order-input" id="custName" placeholder="Full Name / Apka Naam" required>
-                        <input type="tel" class="order-input" id="custPhone" placeholder="WhatsApp / Mobile Number" required>
-                        <input type="text" class="order-input" id="custAddress" placeholder="Delivery Address & City (e.g. Lahore, Karachi, ISB)" required>
-                        
-                        <button type="submit" class="btn-cta-emerald" style="margin-top: 6px;">
-                            <span class="btn-text-main">ORDER NOW (RS. 1,999)</span>
-                            <span class="btn-text-sub">Cash on Delivery Available • Lifetime Access</span>
-                        </button>
-                    </form>
-
-                    <div id="orderSuccessMsg" style="display: none; background: rgba(34, 197, 94, 0.15); border: 1px solid var(--brand-green); color: #38bdf8; padding: 14px; border-radius: 8px; margin-top: 18px; font-size: 13.5px; font-weight: 600;">
-                        Shukriya! Aapka order confirm ho gaya hai. Dispatch details WhatsApp par receive hongi.
-                    </div>
-
-                    <p style="font-size: 12px; color: #64748b; margin-top: 20px;">
-                        🔒 100% Satisfaction Guarantee • NFC + QR Technology Guaranteed
-                    </p>
-                </div>
-            </div>
-        </section>
-
+      </div>
     </div>
+  </section>
 
-    <script>
-        let scene, camera, renderer, cardMesh;
-        const canvasElement = document.getElementById('webglCanvas');
+</div>
 
-        function initThreeScene() {
-            scene = new THREE.Scene();
+<script>
+/* ================================================================
+   THREE.JS — single shared card instance
+================================================================ */
+let scene, camera, renderer, cardMesh;
+const canvasElement = document.getElementById('webglCanvas');
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-            const width = window.innerWidth;
-            const height = window.innerHeight;
+const CARD_HALF_W = 0.775;
+const CARD_HALF_H = 1.265;
 
-            camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
-            camera.position.z = 6.4;
+function initThreeScene(){
+  scene = new THREE.Scene();
+  const width = window.innerWidth, height = window.innerHeight;
 
-            renderer = new THREE.WebGLRenderer({
-                canvas: canvasElement,
-                antialias: true,
-                alpha: true
-            });
-            renderer.setSize(width, height);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.outputEncoding = THREE.sRGBEncoding;
+  camera = new THREE.PerspectiveCamera(40, width/height, 0.1, 1000);
+  camera.position.z = 6.4;
 
-            // Ambient & Specular Lighting
-            const ambLight = new THREE.AmbientLight(0xffffff, 1.3);
-            scene.add(ambLight);
+  renderer = new THREE.WebGLRenderer({ canvas: canvasElement, antialias:true, alpha:true });
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.outputEncoding = THREE.sRGBEncoding;
 
-            const greenRimLight = new THREE.DirectionalLight(0x10b981, 2.4);
-            greenRimLight.position.set(-6, 4, 3);
-            scene.add(greenRimLight);
+  scene.add(new THREE.AmbientLight(0xffffff, 1.25));
+  const key = new THREE.DirectionalLight(0xffffff, 1.7);
+  key.position.set(5,5,4); scene.add(key);
+  const rim = new THREE.DirectionalLight(0xffffff, 0.9);
+  rim.position.set(-6,3,-3); scene.add(rim);
+  const cool = new THREE.DirectionalLight(0x99c2ff, 0.4);
+  cool.position.set(0,-4,-4); scene.add(cool);
 
-            const whiteSpecularLight = new THREE.DirectionalLight(0xffffff, 1.8);
-            whiteSpecularLight.position.set(5, 5, 4);
-            scene.add(whiteSpecularLight);
+  const maxAniso = renderer.capabilities.getMaxAnisotropy();
+  const textureLoader = new THREE.TextureLoader();
+  const frontTex = textureLoader.load('assets/card-front.png');
+  const backTex = textureLoader.load('assets/card-back.png');
+  frontTex.anisotropy = maxAniso; backTex.anisotropy = maxAniso;
+  frontTex.encoding = THREE.sRGBEncoding; backTex.encoding = THREE.sRGBEncoding;
 
-            const cyanBackLight = new THREE.DirectionalLight(0x06b6d4, 1.2);
-            cyanBackLight.position.set(0, -4, -4);
-            scene.add(cyanBackLight);
+  const rimMat = new THREE.MeshStandardMaterial({ color:0x111111, roughness:0.4, metalness:0.55 });
+  const cardGeometry = new THREE.BoxGeometry(CARD_HALF_W*2, CARD_HALF_H*2, 0.04);
+  const materials = [
+    rimMat, rimMat, rimMat, rimMat,
+    new THREE.MeshStandardMaterial({ map: frontTex, roughness:0.35, metalness:0.15 }),
+    new THREE.MeshStandardMaterial({ map: backTex, roughness:0.35, metalness:0.15 })
+  ];
+  cardMesh = new THREE.Mesh(cardGeometry, materials);
+  scene.add(cardMesh);
 
-            // Load real card artwork as textures
-            const maxAniso = renderer.capabilities.getMaxAnisotropy();
-            const textureLoader = new THREE.TextureLoader();
-            const frontTex = textureLoader.load('assets/card-front.png');
-            const backTex = textureLoader.load('assets/card-back.png');
-            frontTex.anisotropy = maxAniso;
-            backTex.anisotropy = maxAniso;
-            frontTex.encoding = THREE.sRGBEncoding;
-            backTex.encoding = THREE.sRGBEncoding;
+  window.addEventListener('resize', onWindowResize);
+  animate();
+}
 
-            // Edge rim material
-            const rimMat = new THREE.MeshStandardMaterial({
-                color: 0x090d13,
-                roughness: 0.3,
-                metalness: 0.8
-            });
+function onWindowResize(){
+  if(!camera||!renderer) return;
+  const w = window.innerWidth, h = window.innerHeight;
+  camera.aspect = w/h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w,h);
+}
 
-            // Matches real card artwork aspect ratio (318 x 520, portrait) - reduced size
-            const cardGeometry = new THREE.BoxGeometry(1.55, 2.53, 0.04);
+function lerp(a,b,t){ return a + (b-a) * t; }
+function easeInOut(t){ return t*t*(3-2*t); }
+const isMobile = () => window.innerWidth < 768;
 
-            const materials = [
-                rimMat, rimMat, rimMat, rimMat,
-                new THREE.MeshStandardMaterial({ map: frontTex, roughness: 0.3, metalness: 0.3 }),
-                new THREE.MeshStandardMaterial({ map: backTex, roughness: 0.3, metalness: 0.3 })
-            ];
+/* ================================================================
+   SECTION-RELATIVE POSE SYSTEM
+   Each pose-anchor section defines its own card pose. Progress is
+   computed independently per-section from its own bounding rect, so
+   adding/resizing sections elsewhere never desyncs the animation.
+================================================================ */
+/* After the reveal section the card has completed one full turn, so every
+   later pose is expressed relative to that turn — otherwise the card would
+   unwind a whole extra rotation on the way into the next section. */
+const TURN = Math.PI*2;
 
-            cardMesh = new THREE.Mesh(cardGeometry, materials);
-            scene.add(cardMesh);
+function poseFor(mobile){
+  return {
+    // card floats below the hero headline + CTAs, in its own reserved slot
+    hero:       { pos:{x:0, y:mobile?-1.72:-1.45, z:-0.4}, rot:{x:0.08, y:-0.22, z:0.03}, s: mobile?0.55:0.78 },
+    // scroll-driven flip: turns through the back and settles facing front again
+    reveal:     { pos:{x:0, y:-0.45, z:0.7},             rot:{x:0.05, y:TURN, z:0},      s: mobile?0.62:0.85 },
+    // centered product pose, sits clear of the heading and Front/Back buttons
+    showcase:   { pos:{x:0, y:mobile?-0.45:-0.62, z:0.5}, rot:{x:0, y:TURN, z:0},         s: mobile?0.55:0.82 },
+    // On mobile the alternating rhythm becomes vertical: the card takes the
+    // reserved band (below the copy in A/C, above it in B/D) and never overlaps.
+    saveContact:{ pos:{x:mobile?0.3:1.95, y:mobile?-1.28:-0.15, z:0.2}, rot:{x:0.08, y:TURN-0.32, z:-0.03}, s: mobile?0.46:0.8 },
+    loyalty:    { pos:{x:mobile?-0.3:-1.95, y:mobile?1.3:-0.05, z:0.2}, rot:{x:-0.05, y:TURN+0.4, z:0.04},  s: mobile?0.46:0.8 },
+    social:     { pos:{x:mobile?0.3:1.95, y:mobile?-1.28:-0.1, z:0.2},  rot:{x:0.06, y:TURN-0.3, z:-0.02},  s: mobile?0.46:0.8 },
+    // flips to the back so the QR side faces the camera
+    qr:         { pos:{x:mobile?-0.3:-1.95, y:mobile?1.3:-0.05, z:0.3}, rot:{x:0.04, y:TURN+Math.PI+0.22, z:0.02}, s: mobile?0.46:0.82 },
+    // beside the order form on desktop; on mobile the form owns the screen and
+    // the card is faded out entirely (see mobile-only no-card handling below)
+    checkout:   { pos:{x:mobile?0:2.55, y:-0.15, z:-0.5}, rot:{x:0.14, y:TURN-0.35, z:0},     s: mobile?0.5:0.62 }
+  };
+}
 
-            window.addEventListener('resize', onWindowResize);
-            animate();
-        }
+const POSE_ORDER = ['hero','reveal','showcase','saveContact','loyalty','social','qr','checkout'];
+const POSE_SECTION_IDS = {
+  hero:'section-hero', reveal:'section-reveal', showcase:'section-showcase',
+  saveContact:'section-save-contact', loyalty:'section-loyalty', social:'section-social',
+  qr:'section-qr', checkout:'section-checkout'
+};
 
-        function onWindowResize() {
-            if (!camera || !renderer) return;
-            const w = window.innerWidth;
-            const h = window.innerHeight;
-            camera.aspect = w / h;
-            camera.updateProjectionMatrix();
-            renderer.setSize(w, h);
-        }
+let targetPosX=0, targetPosY=0, targetPosZ=0.6;
+let targetRotX=0, targetRotY=0, targetRotZ=0;
+let targetScale=0.8;
+let mouseParallaxX=0, mouseParallaxY=0;
 
-        /*
-           Keyframe poses across page scroll progress (0.0 to 1.0):
-           Step 0 (Hero): Center floating, slight tilt.
-           Step 1 (NFC): Moves to Right (+1.4), angles to show top NFC.
-           Step 2 (Socials): Moves to Left (-1.4), zoomed closer (+0.5 z), tilts towards green ribbon.
-           Step 3 (Back Side): Flips 180° (Math.PI), moves to Right (+1.4) to show QR & 5 stars.
-           Step 4 (Checkout): Docks at top center (y = +1.1, z = -0.4), settling gracefully.
-        */
+window.addEventListener('mousemove', (e)=>{
+  if (prefersReducedMotion) return;
+  mouseParallaxX = (e.clientX/window.innerWidth - 0.5) * 0.12;
+  mouseParallaxY = (e.clientY/window.innerHeight - 0.5) * 0.12;
+});
 
-        const isMobile = () => window.innerWidth < 768;
+/* manual Front/Back override, active only while showcase is on screen */
+let manualOverrideActive = false;
+let manualSide = 'front'; // 'front' | 'back'
 
-        function getCardKeyframes() {
-            const mobile = isMobile();
-            return [
-                {
-                    progress: 0.0,
-                    pos: { x: 0, y: mobile ? -2.3 : -1.95, z: mobile ? -1.1 : -0.5 },
-                    rot: { x: 0.1, y: -0.28, z: 0.04 }
-                },
-                {
-                    progress: 0.25,
-                    pos: { x: mobile ? 0 : 2.0, y: mobile ? 1.6 : -0.4, z: mobile ? -0.8 : 0.2 },
-                    rot: { x: 0.16, y: -0.42, z: -0.06 }
-                },
-                {
-                    progress: 0.50,
-                    pos: { x: mobile ? 0 : -1.35, y: mobile ? 1.0 : -0.1, z: mobile ? -0.5 : 0.5 },
-                    rot: { x: -0.08, y: 0.35, z: 0.08 }
-                },
-                {
-                    progress: 0.75,
-                    pos: { x: mobile ? 0 : 1.35, y: mobile ? 1.0 : 0, z: mobile ? -0.6 : 0.4 },
-                    rot: { x: 0.05, y: Math.PI + 0.22, z: -0.04 } // Flips to Back side
-                },
-                {
-                    progress: 1.0,
-                    pos: { x: 0, y: mobile ? 1.25 : 1.15, z: mobile ? -0.8 : -0.3 },
-                    rot: { x: 0.25, y: 0.15, z: 0 }
-                }
-            ];
-        }
+/* cached DOM refs — never queried inside the render/scroll loops */
+const DOM = {
+  showcase: document.getElementById('section-showcase'),
+  hero: document.getElementById('section-hero'),
+  stage: document.getElementById('webgl-stage-fixed'),
+  tracker: document.getElementById('scrollTracker'),
+  zones: Array.from(document.querySelectorAll('.no-card-zone')),
+  poseEls: POSE_ORDER.map(key => ({ key, el: document.getElementById(POSE_SECTION_IDS[key]) }))
+};
 
-        // Linear interpolation helper
-        function lerp(a, b, t) {
-            return a + (b - a) * t;
-        }
+function currentShowcaseVisible(){
+  const r = DOM.showcase.getBoundingClientRect();
+  return r.top < window.innerHeight*0.75 && r.bottom > window.innerHeight*0.25;
+}
 
-        let targetPosX = 0, targetPosY = 0, targetPosZ = 0;
-        let targetRotX = 0, targetRotY = 0, targetRotZ = 0;
-        let mouseParallaxX = 0, mouseParallaxY = 0;
+function updateScrollPoses(){
+  const poses = poseFor(isMobile());
 
-        // Mouse Parallax
-        window.addEventListener('mousemove', (e) => {
-            mouseParallaxX = (e.clientX / window.innerWidth - 0.5) * 0.15;
-            mouseParallaxY = (e.clientY / window.innerHeight - 0.5) * 0.15;
-        });
+  // Progress runs along a single timeline whose anchors are the centres of the
+  // pose sections. Each section's own height decides where its anchor sits, so
+  // resizing or inserting a section can never desync the animation, and the
+  // value is continuous in both scroll directions.
+  const viewCenter = window.innerHeight * 0.5;
+  const centers = DOM.poseEls.map(p=>{
+    const r = p.el.getBoundingClientRect();
+    return r.top + r.height/2;
+  });
 
-        function updateScrollPoses() {
-            const scrollTop = window.scrollY || window.pageYOffset;
-            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-            const scrollFraction = Math.max(0, Math.min(1, scrollTop / (docHeight || 1)));
+  let idx = 0;
+  while (idx < centers.length-1 && centers[idx+1] <= viewCenter) idx++;
+  const nextIdx = Math.min(idx+1, centers.length-1);
 
-            // Hide/Show bottom tracker
-            const tracker = document.getElementById('scrollTracker');
-            if (tracker) {
-                tracker.style.opacity = scrollFraction > 0.85 ? '0' : '1';
-            }
+  let raw;
+  if (viewCenter <= centers[0]) raw = 0;                       // above the first anchor
+  else if (idx === centers.length-1) raw = 1;                  // past the last anchor
+  else raw = (viewCenter - centers[idx]) / ((centers[nextIdx] - centers[idx]) || 1);
+  raw = Math.max(0, Math.min(1, raw));
 
-            // Hide the 3D card while the video/strips/reviews zone is on screen
-            // (that content has no card animation of its own, so keep the card off it)
-            const noCardZone = document.getElementById('noCardZone');
-            const stage = document.getElementById('webgl-stage-fixed');
-            if (noCardZone && stage) {
-                const rect = noCardZone.getBoundingClientRect();
-                const inZone = rect.top < window.innerHeight * 0.6 && rect.bottom > window.innerHeight * 0.4;
-                stage.style.opacity = inZone ? '0' : '1';
-                stage.style.transition = 'opacity 0.4s ease';
-            }
+  // Hold each pose near its anchor, transition across the middle of the gap,
+  // so the card settles while a section is read instead of drifting the whole way.
+  const HOLD = 0.25;
+  let t = (raw - HOLD) / (1 - 2*HOLD);
+  t = Math.max(0, Math.min(1, t));
+  const easeT = easeInOut(t);
 
-            const keyframes = getCardKeyframes();
+  const p1 = poses[POSE_ORDER[idx]];
+  const p2 = poses[POSE_ORDER[nextIdx]];
 
-            // Find current keyframe segment
-            for (let i = 0; i < keyframes.length - 1; i++) {
-                const k1 = keyframes[i];
-                const k2 = keyframes[i + 1];
+  if (!(manualOverrideActive && currentShowcaseVisible())){
+    targetPosX = lerp(p1.pos.x, p2.pos.x, easeT);
+    targetPosY = lerp(p1.pos.y, p2.pos.y, easeT);
+    targetPosZ = lerp(p1.pos.z, p2.pos.z, easeT);
+    targetRotX = lerp(p1.rot.x, p2.rot.x, easeT);
+    targetRotY = lerp(p1.rot.y, p2.rot.y, easeT);
+    targetRotZ = lerp(p1.rot.z, p2.rot.z, easeT);
+    targetScale = lerp(p1.s, p2.s, easeT);
+  } else {
+    // manual control inside showcase: keep centered pose, swap rotation only
+    const sc = poses.showcase;
+    targetPosX = sc.pos.x; targetPosY = sc.pos.y; targetPosZ = sc.pos.z;
+    targetRotX = sc.rot.x; targetRotZ = sc.rot.z;
+    targetScale = sc.s;
+    targetRotY = manualSide === 'front' ? TURN : TURN + Math.PI;
+  }
 
-                if (scrollFraction >= k1.progress && scrollFraction <= k2.progress) {
-                    const segmentT = (scrollFraction - k1.progress) / (k2.progress - k1.progress);
-                    // Smooth Hermite / EaseInOut interpolation
-                    const easeT = segmentT * segmentT * (3 - 2 * segmentT);
+  // scroll hint fade
+  if (DOM.tracker){
+    const heroRect = DOM.hero.getBoundingClientRect();
+    DOM.tracker.style.opacity = heroRect.bottom < window.innerHeight*0.3 ? '0' : '1';
+  }
 
-                    targetPosX = lerp(k1.pos.x, k2.pos.x, easeT);
-                    targetPosY = lerp(k1.pos.y, k2.pos.y, easeT);
-                    targetPosZ = lerp(k1.pos.z, k2.pos.z, easeT);
+  // hide the fixed 3D stage while a no-card zone is centered in view
+  let inZone = false;
+  for (const z of DOM.zones){
+    const r = z.getBoundingClientRect();
+    if (r.top < window.innerHeight*0.55 && r.bottom > window.innerHeight*0.45){ inZone = true; break; }
+  }
+  // the order form fills a phone screen, so the card steps aside there
+  if (!inZone && isMobile()){
+    const c = DOM.poseEls[POSE_ORDER.length-1].el.getBoundingClientRect();
+    if (c.top < window.innerHeight*0.55 && c.bottom > window.innerHeight*0.45) inZone = true;
+  }
+  if (DOM.stage) DOM.stage.style.opacity = inZone ? '0' : '1';
+}
 
-                    targetRotX = lerp(k1.rot.x, k2.rot.x, easeT);
-                    targetRotY = lerp(k1.rot.y, k2.rot.y, easeT);
-                    targetRotZ = lerp(k1.rot.z, k2.rot.z, easeT);
-                    break;
-                }
-            }
-        }
+let scrollScheduled = false;
+window.addEventListener('scroll', ()=>{
+  if (!scrollScheduled){
+    scrollScheduled = true;
+    requestAnimationFrame(()=>{ updateScrollPoses(); scrollScheduled = false; });
+  }
+}, { passive:true });
 
-        window.addEventListener('scroll', updateScrollPoses, { passive: true });
+/* ================================================================
+   ANNOTATION SYSTEM — projects real 3D feature points on the card
+   mesh to screen coordinates, so callouts track the card through
+   every scroll pose, rotation and resize.
+================================================================ */
+function toLocal(xSvg, ySvg){
+  // svg viewBox is 152.55 x 249.48 (matches physical card artwork)
+  return {
+    x: (xSvg/152.55)*CARD_HALF_W*2 - CARD_HALF_W,
+    y: CARD_HALF_H - (ySvg/249.48)*CARD_HALF_H*2,
+    z: 0.021
+  };
+}
+function toLocalBack(xSvg, ySvg){
+  const p = toLocal(xSvg, ySvg);
+  // the back face reads mirrored in the box geometry's local space
+  return { x: -p.x, y: p.y, z: -0.021 };
+}
 
-        const clock = new THREE.Clock();
+/* Feature anchors read off the real card artwork (assets/card-front.svg /
+   card-back.svg, viewBox 152.55 x 249.48). side = which way the label points. */
+const FRONT_FEATURES = [
+  { id:'f1', point: toLocal(30,35),   label:'Instant NFC Connection',    side:'left'  },
+  { id:'f2', point: toLocal(22,122),  label:'Your Business Identity',    side:'left'  },
+  { id:'f3', point: toLocal(75,110),  label:'One Tap Access',            side:'right' },
+  { id:'f4', point: toLocal(110,143), label:'Smart Contact Sharing',     side:'right' },
+  { id:'f5', point: toLocal(76,205),  label:'All Your Links, One Place', side:'left'  }
+];
+const BACK_FEATURES = [
+  { id:'b1', point: toLocalBack(76,140), label:'Scan The QR Code',            side:'right', emphasize:true },
+  { id:'b2', point: toLocalBack(118,185),label:'Instant Digital Access',      side:'right' },
+  { id:'b3', point: toLocalBack(30,188), label:'Your Business Information',   side:'left'  },
+  { id:'b4', point: toLocalBack(122,58), label:'Stay Connected',              side:'right' },
+  { id:'b5', point: toLocalBack(76,225), label:'Powered by Smart Technology', side:'left'  }
+];
 
-        function animate() {
-            requestAnimationFrame(animate);
+const ALL_FEATURES = [...FRONT_FEATURES, ...BACK_FEATURES];
+const annotationLayer = document.getElementById('annotationLayer');
+const annotationEls = {};
+ALL_FEATURES.forEach(f=>{
+  const div = document.createElement('div');
+  div.className = 'annotation' + (f.side==='left' ? ' anchor-left' : '') + (f.emphasize ? ' emphasize' : '');
+  div.innerHTML = '<span class="marker"></span><span class="leader"></span><span class="label"></span>';
+  div.querySelector('.label').textContent = f.label;
+  annotationLayer.appendChild(div);
+  annotationEls[f.id] = div;
+});
 
-            const elapsedTime = clock.getElapsedTime();
+let projVec = null;
+function updateAnnotations(){
+  if (!cardMesh || !camera) return;
+  if (!projVec) projVec = new THREE.Vector3();
+  const showcaseVisible = currentShowcaseVisible();
+  const list = manualSide === 'front' ? FRONT_FEATURES : BACK_FEATURES;
+  const activeIds = new Set(list.map(f=>f.id));
 
-            if (cardMesh) {
-                // Extra shrink on mobile so the card never crowds the text
-                const targetScale = isMobile() ? 0.62 : 0.85;
-                cardMesh.scale.setScalar(lerp(cardMesh.scale.x, targetScale, 0.08));
+  // Hide the callouts while their side of the card is turned away from the
+  // camera, so nothing ever labels a face the visitor cannot see.
+  const facing = Math.cos(cardMesh.rotation.y);
+  const faceVisible = manualSide === 'front' ? facing > 0.55 : facing < -0.55;
 
-                // Subtle floating wave
-                const floatOffset = Math.sin(elapsedTime * 1.8) * 0.05;
+  ALL_FEATURES.forEach(f=>{
+    const el = annotationEls[f.id];
+    if (!showcaseVisible || !faceVisible || !activeIds.has(f.id)){
+      el.classList.remove('show');
+      return;
+    }
+    projVec.set(f.point.x, f.point.y, f.point.z);
+    cardMesh.localToWorld(projVec);
+    projVec.project(camera);
 
-                // Smoothly lerp towards target scroll pose (fluid 60fps)
-                cardMesh.position.x = lerp(cardMesh.position.x, targetPosX + mouseParallaxX, 0.08);
-                cardMesh.position.y = lerp(cardMesh.position.y, targetPosY + floatOffset - mouseParallaxY, 0.08);
-                cardMesh.position.z = lerp(cardMesh.position.z, targetPosZ, 0.08);
+    const screenX = (projVec.x*0.5+0.5)*window.innerWidth;
+    const screenY = (-projVec.y*0.5+0.5)*window.innerHeight;
 
-                cardMesh.rotation.x = lerp(cardMesh.rotation.x, targetRotX + mouseParallaxY * 0.5, 0.08);
-                cardMesh.rotation.y = lerp(cardMesh.rotation.y, targetRotY + mouseParallaxX * 0.5, 0.08);
-                cardMesh.rotation.z = lerp(cardMesh.rotation.z, targetRotZ, 0.08);
-            }
+    el.style.left = screenX + 'px';
+    el.style.top = screenY + 'px';
+    el.classList.add('show');
+  });
+}
 
-            renderer.render(scene, camera);
-        }
+/* Front/Back buttons */
+const btnFront = document.getElementById('btnFront');
+const btnBack = document.getElementById('btnBack');
+const mobFront = document.getElementById('mobileFeaturesFront');
+const mobBack = document.getElementById('mobileFeaturesBack');
 
-        // Initialize on load
-        window.onload = function() {
-            initThreeScene();
-            updateScrollPoses();
-        };
+function setSide(side){
+  manualSide = side;
+  manualOverrideActive = true;
+  btnFront.classList.toggle('active', side==='front');
+  btnBack.classList.toggle('active', side==='back');
+  btnFront.setAttribute('aria-pressed', side==='front');
+  btnBack.setAttribute('aria-pressed', side==='back');
+  mobFront.style.display = side==='front' ? 'block' : 'none';
+  mobBack.style.display = side==='back' ? 'block' : 'none';
+  updateScrollPoses(); // apply the manual side immediately, without waiting for a scroll
+}
+btnFront.addEventListener('click', ()=>setSide('front'));
+btnBack.addEventListener('click', ()=>setSide('back'));
 
-        function handleFormSubmit(e) {
-            e.preventDefault();
-            const name = document.getElementById('custName').value.trim();
-            const phone = document.getElementById('custPhone').value.trim();
-            const address = document.getElementById('custAddress').value.trim();
-            const successBox = document.getElementById('orderSuccessMsg');
+document.getElementById('exploreCardBtn').addEventListener('click', (e)=>{
+  e.preventDefault();
+  document.getElementById('section-showcase').scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+});
 
-            if (!name || !phone || !address) return;
+/* release manual override once the visitor scrolls away from showcase */
+let lastShowcaseVisible = false;
+function trackShowcaseExit(){
+  const vis = currentShowcaseVisible();
+  if (lastShowcaseVisible && !vis) manualOverrideActive = false;
+  lastShowcaseVisible = vis;
+}
 
-            successBox.textContent = `Zabardast ${name}! Aapka Cash on Delivery order receive ho chuka hai. WhatsApp par tracking bheji ja rahi hai.`;
-            successBox.style.display = 'block';
+/* ================================================================
+   RENDER LOOP
+================================================================ */
+const clock = new THREE.Clock();
+function animate(){
+  requestAnimationFrame(animate);
+  if (document.hidden) return;
 
-            setTimeout(() => {
-                successBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }, 100);
-        }
+  const elapsed = clock.getElapsedTime();
+  const lerpSpeed = prefersReducedMotion ? 1 : 0.09;
 
-        /* ==========================================================
-           VIDEO SECTION - YouTube preview loop + unmute
-        =========================================================== */
-        var ytTag = document.createElement('script');
-        ytTag.src = "https://www.youtube.com/iframe_api";
-        document.getElementsByTagName('script')[0].parentNode.insertBefore(ytTag, document.getElementsByTagName('script')[0]);
+  if (cardMesh){
+    cardMesh.scale.setScalar(lerp(cardMesh.scale.x, targetScale, lerpSpeed));
 
-        var ytPlayer;
-        var ytPreviewMode = true;
-        var ytLoopInterval;
+    const floatOffset = prefersReducedMotion ? 0 : Math.sin(elapsed*1.6)*0.045;
 
-        function onYouTubeIframeAPIReady() {
-            ytPlayer = new YT.Player('yt-player', {
-                height: '100%',
-                width: '100%',
-                videoId: '0b1nGhzHbU4',
-                playerVars: {
-                    autoplay: 1,
-                    controls: 0,
-                    rel: 0,
-                    showinfo: 0,
-                    modestbranding: 1,
-                    mute: 1,
-                    loop: 1,
-                    playlist: '0b1nGhzHbU4'
-                },
-                events: {
-                    onReady: onYtPlayerReady,
-                    onStateChange: onYtPlayerStateChange
-                }
-            });
-        }
+    cardMesh.position.x = lerp(cardMesh.position.x, targetPosX + mouseParallaxX, lerpSpeed);
+    cardMesh.position.y = lerp(cardMesh.position.y, targetPosY + floatOffset - mouseParallaxY, lerpSpeed);
+    cardMesh.position.z = lerp(cardMesh.position.z, targetPosZ, lerpSpeed);
 
-        function onYtPlayerReady(event) {
-            event.target.mute();
-            event.target.playVideo();
-            ytLoopInterval = setInterval(function() {
-                if (ytPreviewMode && ytPlayer.getCurrentTime && ytPlayer.getCurrentTime() > 5) {
-                    ytPlayer.seekTo(0);
-                }
-            }, 500);
-        }
+    cardMesh.rotation.x = lerp(cardMesh.rotation.x, targetRotX + mouseParallaxY*0.4, lerpSpeed);
+    cardMesh.rotation.y = lerp(cardMesh.rotation.y, targetRotY + mouseParallaxX*0.4, lerpSpeed);
+    cardMesh.rotation.z = lerp(cardMesh.rotation.z, targetRotZ, lerpSpeed);
+  }
 
-        function onYtPlayerStateChange(event) {
-            if (event.data === YT.PlayerState.PAUSED && ytPreviewMode) {
-                ytPlayer.playVideo();
-            }
-        }
+  trackShowcaseExit();
+  updateAnnotations();
+  renderer.render(scene, camera);
+}
 
-        function unmuteVideo() {
-            if (!ytPlayer) return;
-            ytPreviewMode = false;
-            clearInterval(ytLoopInterval);
-            ytPlayer.unMute();
-            ytPlayer.setVolume(100);
-            ytPlayer.seekTo(0);
-            document.getElementById('unmuteBtn').style.display = 'none';
-        }
-    </script>
+window.onload = function(){
+  if (typeof THREE === 'undefined'){
+    // 3D library unavailable (blocked CDN / no WebGL): hide the empty stage,
+    // the page content and controls stay fully usable.
+    const stage = document.getElementById('webgl-stage-fixed');
+    if (stage) stage.style.display = 'none';
+    const tracker = document.getElementById('scrollTracker');
+    if (tracker) tracker.style.display = 'none';
+    document.querySelectorAll('.mobile-feature-strip').forEach(el=>{ el.style.display = 'none'; });
+    document.getElementById('mobileFeaturesFront').style.display = 'block';
+    return;
+  }
+  initThreeScene();
+  updateScrollPoses();
+};
+
+/* ================================================================
+   ORDER FORM (UI demo only — no backend wired up)
+================================================================ */
+function handleFormSubmit(e){
+  e.preventDefault();
+  const name = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const address = document.getElementById('custAddress').value.trim();
+  const successBox = document.getElementById('orderSuccessMsg');
+  if (!name || !phone || !address) return;
+
+  successBox.textContent = `Shukriya ${name}! Aapka order request receive ho gaya hai. WhatsApp par confirmation bheji jayegi.`;
+  successBox.style.display = 'block';
+  setTimeout(()=>{ successBox.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block:'nearest' }); }, 100);
+}
+
+/* ================================================================
+   VIDEO — YouTube muted preview loop + unmute
+================================================================ */
+var ytTag = document.createElement('script');
+ytTag.src = "https://www.youtube.com/iframe_api";
+document.getElementsByTagName('script')[0].parentNode.insertBefore(ytTag, document.getElementsByTagName('script')[0]);
+
+var ytPlayer, ytPreviewMode = true, ytLoopInterval;
+
+function onYouTubeIframeAPIReady(){
+  ytPlayer = new YT.Player('yt-player', {
+    height:'100%', width:'100%', videoId:'0b1nGhzHbU4',
+    playerVars:{ autoplay:1, controls:0, rel:0, showinfo:0, modestbranding:1, mute:1, loop:1, playlist:'0b1nGhzHbU4' },
+    events:{ onReady:onYtPlayerReady, onStateChange:onYtPlayerStateChange }
+  });
+}
+function onYtPlayerReady(event){
+  event.target.mute(); event.target.playVideo();
+  ytLoopInterval = setInterval(function(){
+    if (ytPreviewMode && ytPlayer.getCurrentTime && ytPlayer.getCurrentTime() > 5) ytPlayer.seekTo(0);
+  }, 500);
+}
+function onYtPlayerStateChange(event){
+  if (event.data === YT.PlayerState.PAUSED && ytPreviewMode) ytPlayer.playVideo();
+}
+function unmuteVideo(){
+  if (!ytPlayer) return;
+  ytPreviewMode = false;
+  clearInterval(ytLoopInterval);
+  ytPlayer.unMute(); ytPlayer.setVolume(100); ytPlayer.seekTo(0);
+  document.getElementById('unmuteBtn').style.display = 'none';
+}
+</script>
 </body>
 </html>
